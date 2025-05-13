@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal, ArrowUp, ArrowDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -91,13 +91,23 @@ export const columns: ColumnDef<Profile>[] = [
   {
     accessorKey: "full_name",
     header: ({ column }) => {
+      const sortDirection = column.getIsSorted();
+      let sortIcon;
+      if (sortDirection === "asc") {
+        sortIcon = <ArrowUp className="ml-2 h-4 w-4" />;
+      } else if (sortDirection === "desc") {
+        sortIcon = <ArrowDown className="ml-2 h-4 w-4" />;
+      } else {
+        // Opcional: mostrar ArrowUpDown o nada si no está ordenado
+        sortIcon = <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />; // Un poco opaco si no está activo
+      }
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Nombre Completo
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          {sortIcon}
         </Button>
       );
     },
@@ -110,64 +120,117 @@ export const columns: ColumnDef<Profile>[] = [
   {
     accessorKey: "email",
     header: ({ column }) => {
+      const sortDirection = column.getIsSorted();
+      let sortIcon;
+      if (sortDirection === "asc") {
+        sortIcon = <ArrowUp className="ml-2 h-4 w-4" />;
+      } else if (sortDirection === "desc") {
+        sortIcon = <ArrowDown className="ml-2 h-4 w-4" />;
+      } else {
+        sortIcon = <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
+      }
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Email
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          {sortIcon}
         </Button>
       );
     },
   },
   {
     accessorKey: "role",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Rol
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    header: ({ column }) => {
+      const sortDirection = column.getIsSorted();
+      let sortIcon;
+      if (sortDirection === "asc") {
+        sortIcon = <ArrowUp className="ml-2 h-4 w-4" />;
+      } else if (sortDirection === "desc") {
+        sortIcon = <ArrowDown className="ml-2 h-4 w-4" />;
+      } else {
+        sortIcon = <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
+      }
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Rol
+          {sortIcon}
+        </Button>
+      );
+    },
   },
   {
     accessorKey: "department",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Departamento
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    header: ({ column }) => {
+      const sortDirection = column.getIsSorted();
+      let sortIcon;
+      if (sortDirection === "asc") {
+        sortIcon = <ArrowUp className="ml-2 h-4 w-4" />;
+      } else if (sortDirection === "desc") {
+        sortIcon = <ArrowDown className="ml-2 h-4 w-4" />;
+      } else {
+        sortIcon = <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
+      }
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Departamento
+          {sortIcon}
+        </Button>
+      );
+    },
   },
   {
     accessorKey: "position",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Cargo
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    header: ({ column }) => {
+      const sortDirection = column.getIsSorted();
+      let sortIcon;
+      if (sortDirection === "asc") {
+        sortIcon = <ArrowUp className="ml-2 h-4 w-4" />;
+      } else if (sortDirection === "desc") {
+        sortIcon = <ArrowDown className="ml-2 h-4 w-4" />;
+      } else {
+        sortIcon = <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
+      }
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Cargo
+          {sortIcon}
+        </Button>
+      );
+    },
   },
   {
     accessorKey: "last_sign_in",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Último Acceso
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    header: ({ column }) => {
+      const sortDirection = column.getIsSorted();
+      let sortIcon;
+      if (sortDirection === "asc") {
+        sortIcon = <ArrowUp className="ml-2 h-4 w-4" />;
+      } else if (sortDirection === "desc") {
+        sortIcon = <ArrowDown className="ml-2 h-4 w-4" />;
+      } else {
+        sortIcon = <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
+      }
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Último Acceso
+          {sortIcon}
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const date = row.getValue("last_sign_in") as string | null;
       return date ? new Date(date).toLocaleDateString('en-CA') : "N/A";

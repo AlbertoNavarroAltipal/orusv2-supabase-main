@@ -819,7 +819,7 @@ const IAMUsuariosPage = () => {
           {" "}
           {/* Añadido mt-2 si paginador está arriba */}
           <CardContent className="p-0">
-            <DataTable table={table} />
+            <DataTable table={table} lineWrap={lineWrap} tableDensity={tableDensity} />
           </CardContent>
         </Card>
         {(paginationPosition === "bottom" || paginationPosition === "both") &&
