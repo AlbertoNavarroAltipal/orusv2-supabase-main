@@ -22,8 +22,12 @@ import PageSubheader from "@/components/dashboard/page-subheader";
 import { DataTable } from "@/components/dashboard/data-table";
 import { columns as initialUserColumns, users as mockUsers } from "./columns";
 import { Profile } from "@/types/user";
+import AdvancedFilterBuilder, {
+  type AdvancedFilterCondition,
+} from "@/components/dashboard/AdvancedFilterBuilder";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge"; // Importar Badge
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
@@ -88,6 +92,7 @@ interface TablePreferences {
 }
 
 const TABLE_PREFERENCES_COOKIE_KEY = "iamUserTablePreferences";
+const ADVANCED_FILTERS_COOKIE_KEY = "iamUserAdvancedFilters";
 
 const IAMUsuariosPage = () => {
   const router = useRouter();
@@ -97,7 +102,9 @@ const IAMUsuariosPage = () => {
   const [rowSelection, setRowSelection] = useState({});
 
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
-  const [showFiltersModal, setShowFiltersModal] = useState(false); // Movido aquí para agrupar con otros controles de modal/dialogo
+  const [showFiltersModal, setShowFiltersModal] = useState(false); // Este es el modal de filtros simples existente
+  const [showAdvancedFilterBuilder, setShowAdvancedFilterBuilder] = useState(false); // Nuevo estado para el constructor de filtros avanzados
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterCondition[]>([]); // Estado para las condiciones de filtro avanzado
   const [showDeletePrefsAlert, setShowDeletePrefsAlert] = useState(false); // Añadir el estado faltante
 
   const [tempLineWrap, setTempLineWrap] = useState(false);
@@ -260,6 +267,136 @@ const IAMUsuariosPage = () => {
     }
   }, [sorting, columnFilters, pageSize, router, searchParams]);
 
+  // useEffect to load advanced filters from Cookies on initial mount
+  useEffect(() => {
+    const savedFiltersString = Cookies.get(ADVANCED_FILTERS_COOKIE_KEY);
+    if (savedFiltersString) {
+      try {
+        const parsedFilters = JSON.parse(savedFiltersString) as AdvancedFilterCondition[];
+        setAdvancedFilters(parsedFilters);
+        // Si se cargan filtros avanzados de la cookie, limpiar la búsqueda global
+        const currentGlobalFilter = columnFilters.find(f => f.id === 'full_name');
+        if (currentGlobalFilter && currentGlobalFilter.value) {
+           table.getColumn("full_name")?.setFilterValue("");
+        }
+      } catch (error) {
+        console.error("Error parsing advanced filters from cookie:", error);
+        Cookies.remove(ADVANCED_FILTERS_COOKIE_KEY); // Eliminar cookie corrupta
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo se ejecuta al montar
+
+  // Helper function to evaluate a single condition for a profile
+  const evaluateProfileCondition = (profile: Profile, condition: AdvancedFilterCondition): boolean => {
+    const rawFieldValue = profile[condition.field as keyof Profile];
+
+    if (condition.operator === 'isEmpty') {
+      return rawFieldValue === null || rawFieldValue === undefined || String(rawFieldValue).trim() === "";
+    }
+    if (condition.operator === 'isNotEmpty') {
+      return rawFieldValue !== null && rawFieldValue !== undefined && String(rawFieldValue).trim() !== "";
+    }
+
+    if (rawFieldValue === null || rawFieldValue === undefined) {
+      return false;
+    }
+
+    const fieldValueString = String(rawFieldValue).toLowerCase();
+    const filterValueString = String(condition.value).toLowerCase();
+
+    switch (condition.operator) {
+      case 'contains':
+        return fieldValueString.includes(filterValueString);
+      case 'equals':
+        return fieldValueString === filterValueString;
+      case 'notEquals':
+        return fieldValueString !== filterValueString;
+      case 'startsWith':
+        return fieldValueString.startsWith(filterValueString);
+      case 'endsWith':
+        return fieldValueString.endsWith(filterValueString);
+      // TODO: Add numeric/date operators here if needed
+      default:
+        return false;
+    }
+  };
+
+  // Helper function to filter data based on a list of advanced conditions
+  const filterDataWithAdvancedFilters = (
+    sourceData: Profile[],
+    filters: AdvancedFilterCondition[]
+  ): Profile[] => {
+    if (!filters || filters.length === 0) {
+      return sourceData;
+    }
+
+    return sourceData.filter(profile => {
+      if (!filters.length) return true; // No filters, show all
+
+      const orGroups: AdvancedFilterCondition[][] = [];
+      let currentAndGroup: AdvancedFilterCondition[] = [];
+
+      for (let i = 0; i < filters.length; i++) {
+        currentAndGroup.push(filters[i]);
+        // La conjunción de filters[i] determina cómo se une con filters[i+1]
+        // Si es OR, o si es la última condición, este grupo AND termina.
+        if (filters[i].conjunction === 'OR' || i === filters.length - 1) {
+          orGroups.push(currentAndGroup);
+          currentAndGroup = [];
+        }
+      }
+
+      // Si después del bucle currentAndGroup tiene elementos (caso de que el último filtro no tuviera conjunción OR explícita,
+      // pero implícitamente termina un bloque AND), y no se añadió, asegurarse de que se procese.
+      // La lógica anterior ya lo cubre con i === filters.length - 1.
+
+      if (orGroups.length === 0 && currentAndGroup.length > 0) {
+        // Esto podría pasar si solo hay un filtro sin conjunción OR explícita.
+        orGroups.push(currentAndGroup);
+      }
+      
+      if (orGroups.length === 0) return true; // No debería pasar si filters.length > 0, pero como salvaguarda.
+
+
+      // Evaluar cada grupo OR
+      for (const andGroup of orGroups) {
+        if (andGroup.length === 0) continue; // Saltar grupos vacíos si se forman incorrectamente
+
+        let andGroupResult = true;
+        for (const condition of andGroup) {
+          if (!evaluateProfileCondition(profile, condition)) {
+            andGroupResult = false; // Si alguna condición en el grupo AND falla, el grupo falla
+            break;
+          }
+        }
+        if (andGroupResult) {
+          return true; // Si algún grupo AND (separado por OR) es verdadero, el perfil pasa
+        }
+      }
+      return false; // Si ningún grupo OR resultó verdadero
+    });
+  };
+
+  // useEffect to update table data based on advanced filters or global search
+  useEffect(() => {
+    let dataToDisplay = [...mockUsers]; // Start with the original full dataset
+
+    if (advancedFilters.length > 0) {
+      dataToDisplay = filterDataWithAdvancedFilters(mockUsers, advancedFilters);
+    } else {
+      const globalSearchFilter = columnFilters.find(f => f.id === 'full_name');
+      if (globalSearchFilter && typeof globalSearchFilter.value === 'string' && globalSearchFilter.value.trim() !== '') {
+        const searchTerm = globalSearchFilter.value.toLowerCase();
+        dataToDisplay = mockUsers.filter(profile =>
+          profile.full_name?.toLowerCase().includes(searchTerm)
+        );
+      }
+      // TODO: Integrate simple filters (roleFilter, etc.) if necessary
+    }
+    setData(dataToDisplay);
+  }, [advancedFilters, columnFilters, mockUsers]); // mockUsers es una dependencia si puede cambiar
+
   // Cargar preferencias de cookies al montar
   useEffect(() => {
     const savedPrefsString = Cookies.get(TABLE_PREFERENCES_COOKIE_KEY);
@@ -334,12 +471,50 @@ const IAMUsuariosPage = () => {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    table.getColumn("full_name")?.setFilterValue(value);
+    table.getColumn("full_name")?.setFilterValue(value); // This updates columnFilters
+    if (value.trim() !== "") {
+      if (advancedFilters.length > 0) {
+        setAdvancedFilters([]); // Clear advanced filters state
+        Cookies.remove(ADVANCED_FILTERS_COOKIE_KEY); // Clear advanced filters from cookie
+      }
+    }
+    // No es necesario modificar la URL aquí para los filtros avanzados
     table.setPageIndex(0);
   };
 
   const handlePageChange = (newPageOneBased: number) => {
     table.setPageIndex(newPageOneBased - 1);
+  };
+
+  const handleApplyAdvancedFilters = (filters: AdvancedFilterCondition[]) => {
+    setAdvancedFilters(filters);
+
+    if (filters.length > 0) {
+      Cookies.set(ADVANCED_FILTERS_COOKIE_KEY, JSON.stringify(filters), { expires: 7 }); // Guardar por 7 días
+      // Clear global search when advanced filters are applied
+      const currentGlobalFilter = columnFilters.find(f => f.id === 'full_name');
+      if (currentGlobalFilter && currentGlobalFilter.value) {
+        table.getColumn("full_name")?.setFilterValue("");
+      }
+    } else {
+      Cookies.remove(ADVANCED_FILTERS_COOKIE_KEY);
+    }
+    // Ya no se manipula la URL para los filtros avanzados aquí
+    table.setPageIndex(0);
+    setShowAdvancedFilterBuilder(false);
+  };
+
+  const handleClearAdvancedFiltersFromModal = () => {
+    setAdvancedFilters([]);
+    Cookies.remove(ADVANCED_FILTERS_COOKIE_KEY);
+    table.setPageIndex(0); // Resetear paginación
+    setShowAdvancedFilterBuilder(false); // Cerrar el modal
+     // Opcional: si la búsqueda global debe reaparecer o no.
+    // Si la búsqueda global también debe limpiarse:
+    // const currentGlobalFilter = columnFilters.find(f => f.id === 'full_name');
+    // if (currentGlobalFilter && currentGlobalFilter.value) {
+    //    table.getColumn("full_name")?.setFilterValue("");
+    // }
   };
 
   const selectedRowCount = table.getSelectedRowModel().rows.length;
@@ -441,7 +616,6 @@ const IAMUsuariosPage = () => {
           {totalPages > 0 && (
             <div className="flex items-center space-x-1"> {/* Este div ahora es el primer hijo directo de space-x-4 si totalPages > 0 */}
               <Button
-                variant="outline" // Mantener outline para estos, o cambiar a "ghost" si se prefiere sin borde
                 // O aplicar color primario: variant="default" o className="bg-primary text-primary-foreground hover:bg-primary/90"
                 // Por ahora, mantendremos outline para consistencia con los botones de acción de la tabla, pero se puede cambiar.
                 // Para un color distintivo, podríamos usar "secondary" o un color personalizado.
@@ -561,123 +735,41 @@ const IAMUsuariosPage = () => {
               className="h-9 pl-8 max-w-xs"
             />
           </div>
-          <Dialog open={showFiltersModal} onOpenChange={setShowFiltersModal}>
+          {/* Botón para Filtros Avanzados */}
+          <Dialog open={showAdvancedFilterBuilder} onOpenChange={setShowAdvancedFilterBuilder}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9 gap-1">
+              <Button variant="outline" size="sm" className="h-9 gap-1 relative"> {/* Añadido relative para posicionar el badge */}
                 <FilterIcon className="h-3.5 w-3.5" />
-                Filtrar
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  Filtros Avanzados
+                </span>
+                {advancedFilters.length > 0 && (
+                  <Badge
+                    variant="destructive" // Estilo rojo
+                    className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs" // Posicionamiento y estilo
+                  >
+                    {advancedFilters.length}
+                  </Badge>
+                )}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Filtros Avanzados</DialogTitle>
+            <DialogContent className="sm:max-w-2xl p-0">
+              <DialogHeader className="p-6 pb-0">
+                <DialogTitle>Constructor de Filtros Avanzados</DialogTitle>
                 <DialogDescription>
-                  Defina filtros adicionales para refinar la lista de usuarios.
+                  Cree condiciones de filtro complejas para refinar la lista de usuarios.
+                  Las condiciones se aplican secuencialmente según el operador Y/O.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="roleFilter" className="text-right">
-                    Rol
-                  </Label>
-                  <Input
-                    id="roleFilter"
-                    value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
-                    className="col-span-3"
-                    placeholder="Ej: Administrador"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="emailFilter" className="text-right">
-                    Email
-                  </Label>
-                  <Input
-                    id="emailFilter"
-                    value={emailFilter}
-                    onChange={(e) => setEmailFilter(e.target.value)}
-                    className="col-span-3"
-                    placeholder="Ej: usuario@ejemplo.com"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="phoneFilter" className="text-right">
-                    Teléfono
-                  </Label>
-                  <Input
-                    id="phoneFilter"
-                    value={phoneFilter}
-                    onChange={(e) => setPhoneFilter(e.target.value)}
-                    className="col-span-3"
-                    placeholder="Ej: 3001234567"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="departmentFilter" className="text-right">
-                    Departamento
-                  </Label>
-                  <Input
-                    id="departmentFilter"
-                    value={departmentFilter}
-                    onChange={(e) => setDepartmentFilter(e.target.value)}
-                    className="col-span-3"
-                    placeholder="Ej: Ventas"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="positionFilter" className="text-right">
-                    Cargo
-                  </Label>
-                  <Input
-                    id="positionFilter"
-                    value={positionFilter}
-                    onChange={(e) => setPositionFilter(e.target.value)}
-                    className="col-span-3"
-                    placeholder="Ej: Gerente"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    // Opcional: Resetear filtros al cancelar
-                    setRoleFilter("");
-                    setEmailFilter("");
-                    setPhoneFilter("");
-                    setDepartmentFilter("");
-                    setPositionFilter("");
-                    setShowFiltersModal(false);
-                  }}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => {
-                    // Lógica para aplicar filtros (por ahora un alert)
-                    const activeFilters = {
-                      role: roleFilter,
-                      email: emailFilter,
-                      phone: phoneFilter,
-                      department: departmentFilter,
-                      position: positionFilter,
-                    };
-                    alert(
-                      "Filtros a aplicar: \n" +
-                        JSON.stringify(activeFilters, null, 2)
-                    );
-                    // Aquí se integraría con la lógica de filtrado de la tabla
-                    setShowFiltersModal(false);
-                  }}
-                >
-                  Aplicar Filtros
-                </Button>
-              </DialogFooter>
+              <AdvancedFilterBuilder
+                columns={userColumns}
+                initialFilters={advancedFilters}
+                onApplyFilters={handleApplyAdvancedFilters}
+                onClose={() => setShowAdvancedFilterBuilder(false)}
+                onClearFilters={handleClearAdvancedFiltersFromModal} // Pasar la nueva función
+              />
             </DialogContent>
           </Dialog>
-
           <Button
             variant="ghost"
             size="icon"
