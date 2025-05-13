@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth/auth-provider"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { useToast } from "@/components/ui/use-toast"
+import { toast as sonnerToast } from "sonner" // Import sonner
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { useSupabase } from "@/lib/supabase/provider"
@@ -23,7 +23,7 @@ export function LoginForm() {
   const { signIn } = useAuth()
   const { supabase } = useSupabase()
   const router = useRouter()
-  const { toast } = useToast()
+  // Remove useToast hook
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -42,22 +42,33 @@ export function LoginForm() {
     try {
       const { error } = await signIn(values.email, values.password)
 
+      // Correctly check if 'error' exists (it will be the AuthError or null)
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Error al iniciar sesión",
-          description: error.message,
-        })
-        return
+        // Check for specific invalid credentials error
+        if (error.code === "invalid_credentials") {
+          sonnerToast.warning("Credenciales inválidas", {
+            description: "Por favor, verifica tu correo electrónico y contraseña.",
+          })
+        } else {
+          // Handle other Supabase auth errors
+          const errorMessage = error.message || "Ocurrió un error durante el inicio de sesión."
+          sonnerToast.error("Error al iniciar sesión", {
+            description: errorMessage,
+          })
+        }
+        return // Stop execution if there was an error
       }
 
+      // If no error, show success message and redirect
+      sonnerToast.success("Inicio de sesión exitoso", {
+        description: "Redirigiendo al dashboard...",
+      })
       router.push("/dashboard")
-      router.refresh()
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error al iniciar sesión",
-        description: error.message,
+
+    } catch (e: any) { // Catch unexpected errors (network issues, etc.)
+      const errorMessage = e.message || "Ocurrió un error inesperado."
+      sonnerToast.error("Error inesperado", {
+        description: errorMessage,
       })
     } finally {
       setIsLoading(false)
@@ -76,17 +87,15 @@ export function LoginForm() {
       })
 
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Error al iniciar sesión con Google",
-          description: error.message,
+        const errorMessage = error.message
+        sonnerToast.error("Error al iniciar sesión con Google", { // Use sonner
+          description: errorMessage,
         })
       }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error al iniciar sesión con Google",
-        description: error.message,
+    } catch (e: any) { // Renamed to avoid conflict
+      const errorMessage = e.message || "Ocurrió un error inesperado."
+      sonnerToast.error("Error al iniciar sesión con Google", { // Use sonner
+        description: errorMessage,
       })
     } finally {
       setIsGoogleLoading(false)

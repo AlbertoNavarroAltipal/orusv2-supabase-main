@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("[AuthProvider] onAuthStateChange event:", event, "session:", session)
       setSession(session)
       setUser(session?.user ?? null)
 
@@ -94,8 +95,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    console.log("[AuthProvider] signOut called")
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error("[AuthProvider] Error during supabase.auth.signOut():", error)
+      } else {
+        console.log("[AuthProvider] supabase.auth.signOut() successful")
+      }
+    } catch (e) {
+      console.error("[AuthProvider] Exception during supabase.auth.signOut():", e)
+    }
+    console.log("[AuthProvider] Attempting to redirect to /auth/login")
     router.push("/auth/login")
+    // router.refresh() // Consider if refresh is needed here or if onAuthStateChange handles it
+    console.log("[AuthProvider] Redirect to /auth/login initiated")
   }
 
   const resetPassword = async (email: string) => {

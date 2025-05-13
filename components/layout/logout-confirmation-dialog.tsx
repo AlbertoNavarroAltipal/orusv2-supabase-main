@@ -28,7 +28,7 @@ export function LogoutConfirmationDialog() {
     setIsLoading(true)
     try {
       await signOut()
-      router.push("/auth/login")
+      // The signOut function in AuthProvider already handles redirection.
     } catch (error) {
       console.error("Error al cerrar sesión:", error)
     } finally {

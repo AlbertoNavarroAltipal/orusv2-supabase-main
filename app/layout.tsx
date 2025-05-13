@@ -1,7 +1,8 @@
 import type React from "react"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "sonner" // Import Sonner's Toaster
+import { Toaster as ShadcnToaster } from "@/components/ui/toaster" // Keep shadcn toaster if used elsewhere
 import { SupabaseProvider } from "@/lib/supabase/provider"
 import { AuthProvider } from "@/lib/auth/auth-provider"
 import "./globals.css"
@@ -26,7 +27,8 @@ export default function RootLayout({
           <AuthProvider>
             <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
               {children}
-              <Toaster />
+              <ShadcnToaster /> {/* Keep if needed */}
+              <SonnerToaster richColors closeButton /> {/* Add Sonner's Toaster */}
             </ThemeProvider>
           </AuthProvider>
         </SupabaseProvider>
