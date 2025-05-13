@@ -40,12 +40,12 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col h-screen p-6 space-y-6">
-      <div>
+      {/* <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
           Bienvenido a ORUS, tu plataforma integral de aplicaciones
         </p>
-      </div>
+      </div> */}
 
       {/* Contenedor principal para las dos columnas */}
       <div className="flex flex-1 gap-6 overflow-hidden">
@@ -68,8 +68,20 @@ export default async function DashboardPage() {
               repostsCount={3}
               likesCount={45} // Este es el 'Heart' original, podría reevaluarse
               comments={[
-                { id: "comment1", authorName: "Elena Max", authorInitials: "EM", commentText: "¡Excelente noticia! Sigan así.", commentTime: "Hace 5 min" },
-                { id: "comment2", authorName: "Juan Pérez", authorInitials: "JP", commentText: "Gracias por la actualización.", commentTime: "Hace 2 min" },
+                {
+                  id: "comment1",
+                  authorName: "Elena Max",
+                  authorInitials: "EM",
+                  commentText: "¡Excelente noticia! Sigan así.",
+                  commentTime: "Hace 5 min",
+                },
+                {
+                  id: "comment2",
+                  authorName: "Juan Pérez",
+                  authorInitials: "JP",
+                  commentText: "Gracias por la actualización.",
+                  commentTime: "Hace 2 min",
+                },
               ]}
               reactions={{ thumbsUp: 25, celebrate: 10, laugh: 5 }}
             />
@@ -83,7 +95,14 @@ export default async function DashboardPage() {
               repostsCount={1}
               likesCount={22}
               comments={[
-                { id: "comment3", authorName: "Carlos Ruiz", authorInitials: "CR", commentText: "Muy interesante, Ana. ¿Puedes compartir el enlace?", commentTime: "Hace 30 min" },
+                {
+                  id: "comment3",
+                  authorName: "Carlos Ruiz",
+                  authorInitials: "CR",
+                  commentText:
+                    "Muy interesante, Ana. ¿Puedes compartir el enlace?",
+                  commentTime: "Hace 30 min",
+                },
               ]}
               reactions={{ thumbsUp: 15, celebrate: 5, laugh: 2 }}
             />
