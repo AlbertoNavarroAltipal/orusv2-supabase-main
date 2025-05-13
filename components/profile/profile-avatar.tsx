@@ -2,96 +2,68 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useSupabase } from "@/lib/supabase/provider"
+import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
-import { Camera, Loader2 } from "lucide-react"
+import { Camera, Loader2 } from "lucide-react" // Mantener Loader2 por si se usa en el futuro
 
 interface ProfileAvatarProps {
-  userId: string
-  avatarUrl: string | null
-  onAvatarChange: (url: string) => void
+  userId: string // Mantener userId por si se necesita para generar nombres de archivo únicos en el padre
+  avatarUrl: string | null // URL del avatar actual o previsualización
+  onFileSelect: (file: File | null, previewUrl: string | null) => void // Callback para pasar el archivo y la URL de previsualización
+  isLoading?: boolean // Indicador de carga desde el padre
 }
 
-export function ProfileAvatar({ userId, avatarUrl, onAvatarChange }: ProfileAvatarProps) {
-  const { supabase } = useSupabase()
-  const router = useRouter()
-  const { toast } = useToast()
-  const [isUploading, setIsUploading] = useState(false)
+export function ProfileAvatar({ userId, avatarUrl, onFileSelect, isLoading = false }: ProfileAvatarProps) {
+  const [currentAvatarUrl, setCurrentAvatarUrl] = useState(avatarUrl)
 
+  // Actualizar la URL del avatar si cambia la prop
+  useEffect(() => {
+    setCurrentAvatarUrl(avatarUrl)
+  }, [avatarUrl])
+
+  // TODO: Calcular iniciales dinámicamente desde el nombre del usuario si está disponible
   const initials = "U"
 
-  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file) return
-
-    setIsUploading(true)
-
-    try {
-      // Crear un nombre único para el archivo
-      const fileExt = file.name.split(".").pop()
-      const fileName = `${userId}-${Math.random().toString(36).substring(2)}.${fileExt}`
-      const filePath = `avatars/${fileName}`
-
-      // Subir el archivo a Supabase Storage
-      const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file)
-
-      if (uploadError) {
-        throw uploadError
-      }
-
-      // Obtener la URL pública del archivo
-      const { data } = await supabase.storage.from("avatars").getPublicUrl(filePath)
-
-      if (!data.publicUrl) {
-        throw new Error("No se pudo obtener la URL pública del avatar")
-      }
-
-      // Actualizar el perfil con la nueva URL del avatar
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: data.publicUrl })
-        .eq("id", userId)
-
-      if (updateError) {
-        throw updateError
-      }
-
-      // Actualizar el estado local
-      onAvatarChange(data.publicUrl)
-
-      toast({
-        title: "Avatar actualizado",
-        description: "Tu foto de perfil ha sido actualizada correctamente.",
-      })
-
-      router.refresh()
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error al actualizar el avatar",
-        description: error.message,
-      })
-    } finally {
-      setIsUploading(false)
+    if (file) {
+      const previewUrl = URL.createObjectURL(file)
+      setCurrentAvatarUrl(previewUrl) // Mostrar previsualización
+      onFileSelect(file, previewUrl) // Pasar archivo y URL de previsualización al padre
+    } else {
+      // Si el usuario cancela la selección, revertir a la URL original y notificar al padre
+      setCurrentAvatarUrl(avatarUrl) // Revertir a la URL original (la que viene de props)
+      onFileSelect(null, null)
     }
+
+    // Limpiar el valor del input para permitir seleccionar el mismo archivo de nuevo
+    event.target.value = ""
   }
+
+  // Limpiar la URL del objeto cuando el componente se desmonte o la URL cambie
+  useEffect(() => {
+    let currentPreviewUrl = currentAvatarUrl
+    return () => {
+      if (currentPreviewUrl && currentPreviewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(currentPreviewUrl)
+      }
+    }
+  }, [currentAvatarUrl])
 
   return (
     <div className="flex flex-col items-center gap-4">
       <Avatar className="h-32 w-32">
-        <AvatarImage src={avatarUrl || ""} alt="Avatar" />
+        {/* Usar currentAvatarUrl que puede ser la original o la de previsualización */}
+        <AvatarImage src={currentAvatarUrl || ""} alt="Avatar" />
         <AvatarFallback className="text-4xl">{initials}</AvatarFallback>
       </Avatar>
       <div className="relative">
-        <Button variant="outline" size="sm" className="relative" disabled={isUploading}>
-          {isUploading ? (
+        <Button variant="outline" size="sm" className="relative" disabled={isLoading}>
+          {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Subiendo...
+              Guardando...
             </>
           ) : (
             <>
@@ -103,8 +75,8 @@ export function ProfileAvatar({ userId, avatarUrl, onAvatarChange }: ProfileAvat
             type="file"
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             accept="image/*"
-            onChange={handleUpload}
-            disabled={isUploading}
+            onChange={handleFileChange}
+            disabled={isLoading}
           />
         </Button>
       </div>

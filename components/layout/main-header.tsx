@@ -26,19 +26,13 @@ import { NotificationsDropdown } from "./notifications-dropdown"
 import { ChatDropdown } from "./chat-dropdown"
 import { cn } from "@/lib/utils"
 
-interface MainHeaderProps {
-  user: {
-    id: string
-    full_name: string | null
-    email: string | null
-    avatar_url: string | null
-  }
-}
+// Eliminar MainHeaderProps ya que no se recibe 'user' como prop
 
-export function MainHeader({ user }: MainHeaderProps) {
+export function MainHeader() { // Eliminar { user } de los parámetros
   const router = useRouter()
   const { toggleMainSidebar } = useAppStore()
-  const { signOut } = useAuth()
+  // Obtener profile y signOut del contexto de autenticación
+  const { profile, signOut, user } = useAuth() // Añadir profile y user (para email)
   const [searchQuery, setSearchQuery] = useState("")
   const [isGlobalMenuOpen, setIsGlobalMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -69,13 +63,18 @@ export function MainHeader({ user }: MainHeaderProps) {
     console.log("Searching for:", searchQuery)
   }
 
-  const initials = user?.full_name
-    ? user.full_name
+  // Calcular iniciales desde el profile del contexto
+  const initials = profile?.full_name
+    ? profile.full_name
         .split(" ")
         .map((n) => n[0])
         .join("")
         .toUpperCase()
-    : "U"
+    : user?.email?.[0]?.toUpperCase() ?? "U" // Fallback a la inicial del email o "U"
+
+  // Podríamos añadir un estado de carga si useAuth tiene isLoading
+  // const { profile, signOut, user, isLoading } = useAuth();
+  // if (isLoading) return <HeaderSkeleton />; // O algún indicador de carga
 
   return (
     <>
@@ -84,7 +83,7 @@ export function MainHeader({ user }: MainHeaderProps) {
           "fixed top-0 left-0 right-0 text-white z-50 transition-all duration-300",
           isScrolled
             ? "bg-primary-600/95 backdrop-blur-sm h-14 shadow-md"
-            : "bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400 h-16",
+            : "bg-gradient-to-b from-primary-600 via-primary-500 to-primary-400 h-16",
         )}
       >
         <div className="max-w-screen-2xl mx-auto h-full flex items-center justify-between px-4">
@@ -152,23 +151,27 @@ export function MainHeader({ user }: MainHeaderProps) {
                   className="flex items-center gap-2 text-white hover:bg-white/10 rounded-full p-1 md:pl-2 md:pr-3"
                 >
                   <Avatar className="h-8 w-8 border-2 border-white/20">
-                    <AvatarImage src={user.avatar_url || ""} alt={user.full_name || "Usuario"} />
+                    {/* Usar profile?.avatar_url */}
+                    <AvatarImage src={profile?.avatar_url || ""} alt={profile?.full_name || "Usuario"} />
                     <AvatarFallback className="bg-primary-300 text-primary-800 font-medium">{initials}</AvatarFallback>
                   </Avatar>
-                  <span className="hidden md:inline-block font-medium">{user.full_name}</span>
+                  {/* Usar profile?.full_name */}
+                  <span className="hidden md:inline-block font-medium">{profile?.full_name}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 mt-1">
                 <div className="flex flex-col space-y-1 p-2">
-                  <p className="text-sm font-medium">{user.full_name}</p>
-                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                  {/* Usar profile?.full_name y user?.email (el email suele estar en user) */}
+                  <p className="text-sm font-medium">{profile?.full_name || "Usuario"}</p>
+                  <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
                     <Link href="/dashboard/profile" className="flex w-full items-center">
                       <Avatar className="h-4 w-4 mr-2">
-                        <AvatarImage src={user.avatar_url || ""} alt={user.full_name || "Usuario"} />
+                         {/* Usar profile?.avatar_url */}
+                        <AvatarImage src={profile?.avatar_url || ""} alt={profile?.full_name || "Usuario"} />
                         <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
                       </Avatar>
                       Perfil
