@@ -35,6 +35,17 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
@@ -48,6 +59,10 @@ import {
   Settings2,
   Search as SearchIcon,
   Filter as FilterIcon,
+  ChevronsLeft,
+  ChevronsRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -82,6 +97,9 @@ const IAMUsuariosPage = () => {
   const [rowSelection, setRowSelection] = useState({});
 
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
+  const [showFiltersModal, setShowFiltersModal] = useState(false); // Movido aquí para agrupar con otros controles de modal/dialogo
+  const [showDeletePrefsAlert, setShowDeletePrefsAlert] = useState(false); // Añadir el estado faltante
+
   const [tempLineWrap, setTempLineWrap] = useState(false);
   const [tempTableDensity, setTempTableDensity] =
     useState<TableDensity>("normal");
@@ -104,7 +122,7 @@ const IAMUsuariosPage = () => {
     setShowPreferencesModal(open);
   };
 
-  const [showFiltersModal, setShowFiltersModal] = useState(false);
+  // const [showFiltersModal, setShowFiltersModal] = useState(false); // Ya se movió arriba
 
   // Estados para filtros avanzados
   const [roleFilter, setRoleFilter] = useState("");
@@ -114,10 +132,20 @@ const IAMUsuariosPage = () => {
   const [positionFilter, setPositionFilter] = useState("");
 
   // Preferencias de la tabla (con valores por defecto iniciales, se cargarán de cookies)
+  const initialColumnVisibility: VisibilityState = {
+    phone: false,
+    avatar_url: false,
+    department: false,
+    position: false,
+    // Las demás columnas (full_name, email, role, last_sign_in) serán visibles por defecto
+  };
+
   const [pageSize, setPageSize] = useState(10);
   const [paginationPosition, setPaginationPosition] =
     useState<PaginationPosition>("bottom");
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    initialColumnVisibility
+  );
   const [lineWrap, setLineWrap] = useState(false);
   const [tableDensity, setTableDensity] = useState<TableDensity>("normal");
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
@@ -240,7 +268,10 @@ const IAMUsuariosPage = () => {
         const savedPrefs = JSON.parse(savedPrefsString) as TablePreferences;
         setPageSize(savedPrefs.pageSize ?? 10);
         setPaginationPosition(savedPrefs.paginationPosition ?? "bottom");
-        setColumnVisibility(savedPrefs.columnVisibility ?? {});
+        // Al cargar de cookies, usar lo guardado, o los iniciales si la cookie no tiene visibilidad
+        setColumnVisibility(
+          savedPrefs.columnVisibility ?? initialColumnVisibility
+        );
         setLineWrap(savedPrefs.lineWrap ?? false);
         setTableDensity(savedPrefs.tableDensity ?? "normal");
 
@@ -249,7 +280,9 @@ const IAMUsuariosPage = () => {
         setTempTableDensity(savedPrefs.tableDensity ?? "normal");
         setTempPageSize(savedPrefs.pageSize ?? 10);
         setTempPaginationPosition(savedPrefs.paginationPosition ?? "bottom");
-        setTempColumnVisibility(savedPrefs.columnVisibility ?? {});
+        setTempColumnVisibility(
+          savedPrefs.columnVisibility ?? initialColumnVisibility
+        );
 
         // Aplicar pageSize a la tabla inmediatamente después de cargar de cookies
         table.setPageSize(savedPrefs.pageSize ?? 10);
@@ -370,67 +403,145 @@ const IAMUsuariosPage = () => {
 
     return (
       <div className="flex items-center justify-between space-x-2 py-2">
-        <div className="text-xs text-muted-foreground">{pageInfoText}</div>
-        {totalPages > 0 && (
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    table.previousPage();
+        <div className="text-xs text-muted-foreground">{pageInfoText}</div>{" "}
+        {/* Leyenda a la izquierda */}
+        {/* Contenedor para el selector de tamaño de página y los controles de paginación, alineados a la derecha */}
+        <div className="flex items-center space-x-4">
+          {/*
+          <div className="flex items-center space-x-1">
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) => {
+                const newSize = Number(value);
+                setPageSize(newSize);
+                table.setPageSize(newSize);
+                if (showPreferencesModal) {
+                  setTempPageSize(newSize);
+                }
+                const params = new URLSearchParams(searchParams.toString());
+                params.set("page", "1");
+                params.set("per_page", newSize.toString());
+                router.push(`?${params.toString()}`, { scroll: false });
+              }}
+            >
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue placeholder={String(pageSize)} />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[10, 20, 30, 40, 50].map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          */}
+
+          {totalPages > 0 && (
+            <div className="flex items-center space-x-1"> {/* Este div ahora es el primer hijo directo de space-x-4 si totalPages > 0 */}
+              <Button
+                variant="outline" // Mantener outline para estos, o cambiar a "ghost" si se prefiere sin borde
+                // O aplicar color primario: variant="default" o className="bg-primary text-primary-foreground hover:bg-primary/90"
+                // Por ahora, mantendremos outline para consistencia con los botones de acción de la tabla, pero se puede cambiar.
+                // Para un color distintivo, podríamos usar "secondary" o un color personalizado.
+                // Vamos a probar con "secondary" para diferenciarlos de los botones de acción principales.
+                // O si el tema tiene un color de acento para paginación, usar ese.
+                // Por simplicidad y consistencia con el diseño general de shadcn, los botones de paginación suelen ser "outline" o "ghost".
+                // Si se quiere color, se puede añadir una clase específica o usar `variant="default"` si el default es colorido.
+                // Para este ejemplo, usaré `variant="default"` asumiendo que el tema lo colorea.
+                // Si no, se necesitaría una clase CSS personalizada o ajustar el tema.
+                // Reconsiderando: Los botones de paginación de shadcn/ui suelen ser `outline` o `ghost`.
+                // Para colorearlos, es mejor usar `variant="default"` si el tema lo soporta, o clases específicas.
+                // Vamos a mantenerlos `outline` por ahora para no romper el diseño visual estándar de shadcn sin más contexto del tema.
+                // El usuario pidió "colocar color", así que intentaremos con `variant="default"` y si no, se puede refinar.
+                // Si `variant="default"` no da el color esperado, se puede usar `className` con colores de Tailwind.
+                // Ejemplo con Tailwind: className="h-8 w-8 p-0 bg-blue-500 hover:bg-blue-600 text-white"
+                // Por ahora, probemos `variant="default"`
+                variant="default"
+                className="h-8 w-8 p-0"
+                onClick={() => table.setPageIndex(0)}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <span className="sr-only">Primera página</span>
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="default"
+                className="h-8 w-8 p-0"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <span className="sr-only">Página anterior</span>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              <div className="flex items-center space-x-1 text-xs">
+                <span>Página</span>
+                <Input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  // Para evitar problemas con el valor controlado y el cursor,
+                  // podríamos usar un estado local para el input si la edición directa es problemática.
+                  // Por ahora, se mantiene el valor directo de la tabla.
+                  defaultValue={pageIndex + 1} // Usar defaultValue para permitir edición y luego manejar onBlur o Enter
+                  onBlur={(e) => {
+                    // Aplicar al perder el foco
+                    const page = e.target.value
+                      ? Number(e.target.value) - 1
+                      : 0;
+                    if (page >= 0 && page < totalPages) {
+                      table.setPageIndex(page);
+                    } else {
+                      // Si el valor es inválido, resetear al valor actual de la tabla
+                      e.target.value = (pageIndex + 1).toString();
+                    }
                   }}
-                  className={
-                    !table.getCanPreviousPage()
-                      ? "pointer-events-none opacity-50"
-                      : undefined
-                  }
-                  // El texto "Anterior" y el tamaño "sm" ahora vienen del componente modificado en ui/pagination.tsx
-                />
-              </PaginationItem>
-              {uniquePageNumbers.map((pageNumber, index) =>
-                pageNumber === -1 ? (
-                  <PaginationEllipsis key={`ellipsis-${index}`} />
-                ) : (
-                  <PaginationItem key={pageNumber}>
-                    <PaginationLink
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handlePageChange(pageNumber);
-                      }}
-                      isActive={
-                        table.getState().pagination.pageIndex === pageNumber - 1
+                  onKeyDown={(e) => {
+                    // Aplicar al presionar Enter
+                    if (e.key === "Enter") {
+                      const page = (e.target as HTMLInputElement).value
+                        ? Number((e.target as HTMLInputElement).value) - 1
+                        : 0;
+                      if (page >= 0 && page < totalPages) {
+                        table.setPageIndex(page);
+                      } else {
+                        (e.target as HTMLInputElement).value = (
+                          pageIndex + 1
+                        ).toString();
                       }
-                      size="sm"
-                    >
-                      {pageNumber}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-              )}
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    table.nextPage();
+                    }
                   }}
-                  className={
-                    !table.getCanNextPage()
-                      ? "pointer-events-none opacity-50"
-                      : undefined
-                  }
-                  // El texto "Siguiente" y el tamaño "sm" ahora vienen del componente modificado en ui/pagination.tsx
+                  className="h-8 w-12 p-1 text-center border-input" // Asegurar borde visible
                 />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
+                <span>de {totalPages}</span>
+              </div>
+
+              <Button
+                variant="default"
+                className="h-8 w-8 p-0"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <span className="sr-only">Página siguiente</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="default"
+                className="h-8 w-8 p-0"
+                onClick={() => table.setPageIndex(totalPages - 1)}
+                disabled={!table.getCanNextPage()}
+              >
+                <span className="sr-only">Última página</span>
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     );
-  }; // Asegurar que renderPaginationControls esté cerrada correctamente
+  }; // Cierre de renderPaginationControls
 
   return (
     <>
@@ -718,47 +829,91 @@ const IAMUsuariosPage = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    Cookies.remove(TABLE_PREFERENCES_COOKIE_KEY);
-                    const defaultPrefs: TablePreferences = {
-                        pageSize: 10,
-                        paginationPosition: "bottom",
-                        columnVisibility: {},
-                        lineWrap: false,
-                        tableDensity: "normal",
-                        columnSizing: {}, // Asegurar que columnSizing esté aquí
-                    };
-                    // Aplicar a estados principales
-                    setPageSize(defaultPrefs.pageSize);
-                    table.setPageSize(defaultPrefs.pageSize);
-                    setPaginationPosition(defaultPrefs.paginationPosition);
-                    setColumnVisibility(defaultPrefs.columnVisibility);
-                    table.setColumnVisibility(defaultPrefs.columnVisibility);
-                    setLineWrap(defaultPrefs.lineWrap);
-                    setTableDensity(defaultPrefs.tableDensity);
-                    setColumnSizing({}); // Resetear columnSizing
-                    table.resetColumnSizing(); // Resetear en la tabla
-
-                    // Resetear también los temporales para reflejar en el modal si sigue abierto
-                    setTempPageSize(defaultPrefs.pageSize);
-                    setTempPaginationPosition(defaultPrefs.paginationPosition);
-                    setTempColumnVisibility(defaultPrefs.columnVisibility);
-                    setTempLineWrap(defaultPrefs.lineWrap);
-                    setTempTableDensity(defaultPrefs.tableDensity);
-
-                    const params = new URLSearchParams(searchParams.toString());
-                    params.set("per_page", defaultPrefs.pageSize.toString());
-                    router.push(`?${params.toString()}`, { scroll: false });
-                    alert(
-                      "Preferencias guardadas borradas y restauradas a valores por defecto."
-                    );
-                  }}
+                <AlertDialog
+                  open={showDeletePrefsAlert}
+                  onOpenChange={setShowDeletePrefsAlert}
                 >
-                  Borrar preferencias guardadas
-                </Button>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="w-full mt-2"
+                    >
+                      {" "}
+                      {/* Color rojo y margen */}
+                      Borrar preferencias guardadas
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        ¿Está realmente seguro?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta acción no se puede deshacer. Se borrarán
+                        permanentemente sus preferencias de tabla guardadas y se
+                        restaurarán los valores por defecto.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel
+                        onClick={() => setShowDeletePrefsAlert(false)}
+                      >
+                        Cancelar
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => {
+                          Cookies.remove(TABLE_PREFERENCES_COOKIE_KEY);
+                          const defaultPrefs: TablePreferences = {
+                            pageSize: 10,
+                            paginationPosition: "bottom",
+                            columnVisibility: initialColumnVisibility,
+                            lineWrap: false,
+                            tableDensity: "normal",
+                            columnSizing: {},
+                          };
+                          setPageSize(defaultPrefs.pageSize);
+                          table.setPageSize(defaultPrefs.pageSize);
+                          setPaginationPosition(
+                            defaultPrefs.paginationPosition
+                          );
+                          setColumnVisibility(defaultPrefs.columnVisibility);
+                          table.setColumnVisibility(
+                            defaultPrefs.columnVisibility
+                          );
+                          setLineWrap(defaultPrefs.lineWrap);
+                          setTableDensity(defaultPrefs.tableDensity);
+                          setColumnSizing(defaultPrefs.columnSizing);
+                          table.resetColumnSizing();
+
+                          setTempPageSize(defaultPrefs.pageSize);
+                          setTempPaginationPosition(
+                            defaultPrefs.paginationPosition
+                          );
+                          setTempColumnVisibility(
+                            defaultPrefs.columnVisibility
+                          );
+                          setTempLineWrap(defaultPrefs.lineWrap);
+                          setTempTableDensity(defaultPrefs.tableDensity);
+
+                          const params = new URLSearchParams(
+                            searchParams.toString()
+                          );
+                          params.set(
+                            "per_page",
+                            defaultPrefs.pageSize.toString()
+                          );
+                          router.push(`?${params.toString()}`, {
+                            scroll: false,
+                          });
+                          setShowDeletePrefsAlert(false); // Cerrar el diálogo de alerta
+                        }}
+                      >
+                        Sí, borrar preferencias
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
               <DialogFooter>
                 <Button
@@ -819,7 +974,11 @@ const IAMUsuariosPage = () => {
           {" "}
           {/* Añadido mt-2 si paginador está arriba */}
           <CardContent className="p-0">
-            <DataTable table={table} lineWrap={lineWrap} tableDensity={tableDensity} />
+            <DataTable
+              table={table}
+              lineWrap={lineWrap}
+              tableDensity={tableDensity}
+            />
           </CardContent>
         </Card>
         {(paginationPosition === "bottom" || paginationPosition === "both") &&

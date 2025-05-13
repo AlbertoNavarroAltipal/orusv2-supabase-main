@@ -210,6 +210,37 @@ export const columns: ColumnDef<Profile>[] = [
     },
   },
   {
+    accessorKey: "phone",
+    header: ({ column }) => {
+      const sortDirection = column.getIsSorted();
+      let sortIcon;
+      if (sortDirection === "asc") {
+        sortIcon = <ArrowUp className="ml-2 h-4 w-4" />;
+      } else if (sortDirection === "desc") {
+        sortIcon = <ArrowDown className="ml-2 h-4 w-4" />;
+      } else {
+        sortIcon = <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
+      }
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Teléfono
+          {sortIcon}
+        </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "avatar_url",
+    header: "Avatar URL", // No la haremos ordenable por ahora
+    cell: ({ row }) => {
+      const avatarUrl = row.getValue("avatar_url") as string | null;
+      return avatarUrl ? <a href={avatarUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Ver Avatar</a> : "N/A";
+    }
+  },
+  {
     accessorKey: "last_sign_in",
     header: ({ column }) => {
       const sortDirection = column.getIsSorted();
