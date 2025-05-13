@@ -16,7 +16,16 @@ export function AppSidebar() {
 
   // Determinar qué aplicación está activa basado en la ruta
   const pathSegments = pathname.split("/").filter(Boolean)
-  const currentModule = pathSegments.length > 0 ? pathSegments[0] : "dashboard"
+  let currentModule = "dashboard" // Valor por defecto
+
+  if (pathSegments.length > 1 && pathSegments[0] === "dashboard" && pathSegments[1] === "escuela-altipal") {
+    currentModule = "escuela-altipal"
+  } else if (pathSegments.length > 1 && pathSegments[0] === "dashboard" && pathSegments[1] === "tickets") {
+    currentModule = "tickets"
+  } else if (pathSegments.length > 0 && pathSegments[0] !== "dashboard") {
+    currentModule = pathSegments[0]
+  }
+  // Si es solo /dashboard, currentModule sigue siendo "dashboard"
 
   if (!appSidebarOpen) return null
 
@@ -39,6 +48,8 @@ export function AppSidebar() {
         {currentModule === "dashboard" && <DashboardMenu pathname={pathname} />}
         {currentModule === "users" && <UsersMenu pathname={pathname} />}
         {currentModule === "roles" && <RolesMenu pathname={pathname} />}
+        {currentModule === "escuela-altipal" && <EscuelaAltipalMenu pathname={pathname} />}
+        {currentModule === "tickets" && <TicketsMenu pathname={pathname} />}
       </div>
     </div>
   )
@@ -46,18 +57,50 @@ export function AppSidebar() {
 
 function DashboardMenu({ pathname }: { pathname: string }) {
   return (
-    <nav className="space-y-1">
+    <nav className="space-y-2"> {/* Aumentar el espacio entre elementos */}
       <NavLink href="/dashboard" pathname={pathname}>
+        Muro de notificas
+      </NavLink>
+      <NavLink href="/dashboard/escuela-altipal" pathname={pathname}> {/* Ruta provisional */}
+        Escuela Altipal
+      </NavLink>
+      {/* Asumiendo que Tickets no necesita un PermissionGuard específico por ahora */}
+      {/* Si se necesita, se puede añadir como el de Configuración anteriormente */}
+      <NavLink href="/dashboard/tickets" pathname={pathname}> {/* Ruta provisional */}
+        Tickets
+      </NavLink>
+      {/* Puedes añadir más NavLink aquí si es necesario para el "etc..." */}
+    </nav>
+  )
+}
+
+function EscuelaAltipalMenu({ pathname }: { pathname: string }) {
+  return (
+    <nav className="space-y-2">
+      <NavLink href="/dashboard/escuela-altipal" pathname={pathname}>
         Resumen
       </NavLink>
-      <NavLink href="/dashboard/profile" pathname={pathname}>
-        Mi perfil
+      <NavLink href="/dashboard/escuela-altipal/mis-cursos" pathname={pathname}>
+        Mis Cursos
       </NavLink>
-      <PermissionGuard permission="view_settings">
-        <NavLink href="/dashboard/settings" pathname={pathname}>
-          Configuración
-        </NavLink>
-      </PermissionGuard>
+      <NavLink href="/dashboard/escuela-altipal/mis-calificaciones" pathname={pathname}>
+        Mis Calificaciones
+      </NavLink>
+      {/* Agrega más enlaces aquí si es necesario */}
+    </nav>
+  )
+}
+
+function TicketsMenu({ pathname }: { pathname: string }) {
+  return (
+    <nav className="space-y-2">
+      <NavLink href="/dashboard/tickets" pathname={pathname}>
+        Ver mis tickets
+      </NavLink>
+      <NavLink href="/dashboard/tickets/crear" pathname={pathname}>
+        Crear nuevo ticket
+      </NavLink>
+      {/* Agrega más enlaces aquí si es necesario */}
     </nav>
   )
 }
@@ -114,8 +157,10 @@ function NavLink({ href, pathname, children }: NavLinkProps) {
     <Link
       href={href}
       className={cn(
-        "flex items-center px-3 py-2 text-sm rounded-md",
-        isActive ? "bg-amber-200 text-amber-900 font-medium" : "text-gray-700 hover:bg-amber-100",
+        "flex items-center px-4 py-2.5 text-sm rounded-md transition-colors duration-150 ease-in-out", // Padding aumentado y transición
+        isActive
+          ? "bg-amber-300 text-amber-900 font-semibold" // Estado activo más prominente
+          : "text-gray-700 hover:bg-amber-200 hover:text-amber-800", // Hover mejorado
       )}
     >
       {children}
