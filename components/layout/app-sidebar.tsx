@@ -14,6 +14,12 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { appSidebarOpen, toggleAppSidebar } = useAppStore();
 
+  // Si estamos en una ruta de IAM, no mostrar este sidebar global,
+  // ya que IAM tiene su propio sidebar dedicado.
+  // if (pathname.startsWith("/dashboard/iam")) {
+  //   return null;
+  // }
+
   // Determinar qué aplicación está activa basado en la ruta
   const pathSegments = pathname.split("/").filter(Boolean);
   let currentModule = "dashboard"; // Valor por defecto
@@ -30,6 +36,12 @@ export function AppSidebar() {
     pathSegments[1] === "tickets"
   ) {
     currentModule = "tickets";
+  } else if (
+    pathSegments.length > 1 &&
+    pathSegments[0] === "dashboard" &&
+    pathSegments[1] === "iam"
+  ) {
+    currentModule = "iam";
   } else if (pathSegments.length > 0 && pathSegments[0] !== "dashboard") {
     currentModule = pathSegments[0];
   }
@@ -49,8 +61,8 @@ export function AppSidebar() {
         return "Gestión de Usuarios"; // Ejemplo de título más descriptivo
       case "roles":
         return "Gestión de Roles"; // Ejemplo de título más descriptivo
-      case "iam": // Suponiendo que 'iam' puede ser un currentModule
-        return "IAM";
+      case "iam":
+        return "Gestión de Accesos (IAM)";
       default:
         // Capitaliza la primera letra y reemplaza guiones por espacios para un fallback genérico
         return moduleName
@@ -91,6 +103,7 @@ export function AppSidebar() {
           <EscuelaAltipalMenu pathname={pathname} />
         )}
         {currentModule === "tickets" && <TicketsMenu pathname={pathname} />}
+        {currentModule === "iam" && <IAMMenu pathname={pathname} />}
       </div>
     </div>
   );
@@ -225,6 +238,36 @@ function RolesMenu({ pathname }: { pathname: string }) {
   );
 }
 
+function IAMMenu({ pathname }: { pathname: string }) {
+  return (
+    <nav className="space-y-1">
+      <NavLink href="/dashboard/iam" pathname={pathname}>
+        Panel Principal IAM
+      </NavLink>
+      {/* <PermissionGuard permission="view_users_iam"> */}
+      <NavLink href="/dashboard/iam/usuarios" pathname={pathname}>
+        Usuarios
+      </NavLink>
+      {/* </PermissionGuard> */}
+      {/* <PermissionGuard permission="view_roles_iam"> */}
+      <NavLink href="/dashboard/iam/roles" pathname={pathname}>
+        Roles
+      </NavLink>
+      {/* </PermissionGuard> */}
+      {/* <PermissionGuard permission="view_permissions_iam"> */}
+      <NavLink href="/dashboard/iam/permisos" pathname={pathname}>
+        Permisos
+      </NavLink>
+      {/* </PermissionGuard> */}
+      {/* <PermissionGuard permission="view_audit_iam"> */}
+      <NavLink href="/dashboard/iam/auditoria" pathname={pathname}>
+        Auditoría
+      </NavLink>
+      {/* </PermissionGuard> */}
+    </nav>
+  );
+}
+
 interface NavLinkProps {
   href: string;
   pathname: string;
@@ -232,7 +275,8 @@ interface NavLinkProps {
 }
 
 function NavLink({ href, pathname, children }: NavLinkProps) {
-  const isActive = pathname === href;
+  const isActive = pathname === href || (href !== "/dashboard/iam" && pathname.startsWith(href));
+
 
   return (
     <Link
