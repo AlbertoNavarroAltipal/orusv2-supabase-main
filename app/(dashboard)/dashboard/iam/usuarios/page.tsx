@@ -103,8 +103,11 @@ const IAMUsuariosPage = () => {
 
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const [showFiltersModal, setShowFiltersModal] = useState(false); // Este es el modal de filtros simples existente
-  const [showAdvancedFilterBuilder, setShowAdvancedFilterBuilder] = useState(false); // Nuevo estado para el constructor de filtros avanzados
-  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterCondition[]>([]); // Estado para las condiciones de filtro avanzado
+  const [showAdvancedFilterBuilder, setShowAdvancedFilterBuilder] =
+    useState(false); // Nuevo estado para el constructor de filtros avanzados
+  const [advancedFilters, setAdvancedFilters] = useState<
+    AdvancedFilterCondition[]
+  >([]); // Estado para las condiciones de filtro avanzado
   const [showDeletePrefsAlert, setShowDeletePrefsAlert] = useState(false); // Añadir el estado faltante
 
   const [tempLineWrap, setTempLineWrap] = useState(false);
@@ -272,30 +275,45 @@ const IAMUsuariosPage = () => {
     const savedFiltersString = Cookies.get(ADVANCED_FILTERS_COOKIE_KEY);
     if (savedFiltersString) {
       try {
-        const parsedFilters = JSON.parse(savedFiltersString) as AdvancedFilterCondition[];
+        const parsedFilters = JSON.parse(
+          savedFiltersString
+        ) as AdvancedFilterCondition[];
         setAdvancedFilters(parsedFilters);
         // Si se cargan filtros avanzados de la cookie, limpiar la búsqueda global
-        const currentGlobalFilter = columnFilters.find(f => f.id === 'full_name');
+        const currentGlobalFilter = columnFilters.find(
+          (f) => f.id === "full_name"
+        );
         if (currentGlobalFilter && currentGlobalFilter.value) {
-           table.getColumn("full_name")?.setFilterValue("");
+          table.getColumn("full_name")?.setFilterValue("");
         }
       } catch (error) {
         console.error("Error parsing advanced filters from cookie:", error);
         Cookies.remove(ADVANCED_FILTERS_COOKIE_KEY); // Eliminar cookie corrupta
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Solo se ejecuta al montar
 
   // Helper function to evaluate a single condition for a profile
-  const evaluateProfileCondition = (profile: Profile, condition: AdvancedFilterCondition): boolean => {
+  const evaluateProfileCondition = (
+    profile: Profile,
+    condition: AdvancedFilterCondition
+  ): boolean => {
     const rawFieldValue = profile[condition.field as keyof Profile];
 
-    if (condition.operator === 'isEmpty') {
-      return rawFieldValue === null || rawFieldValue === undefined || String(rawFieldValue).trim() === "";
+    if (condition.operator === "isEmpty") {
+      return (
+        rawFieldValue === null ||
+        rawFieldValue === undefined ||
+        String(rawFieldValue).trim() === ""
+      );
     }
-    if (condition.operator === 'isNotEmpty') {
-      return rawFieldValue !== null && rawFieldValue !== undefined && String(rawFieldValue).trim() !== "";
+    if (condition.operator === "isNotEmpty") {
+      return (
+        rawFieldValue !== null &&
+        rawFieldValue !== undefined &&
+        String(rawFieldValue).trim() !== ""
+      );
     }
 
     if (rawFieldValue === null || rawFieldValue === undefined) {
@@ -306,15 +324,15 @@ const IAMUsuariosPage = () => {
     const filterValueString = String(condition.value).toLowerCase();
 
     switch (condition.operator) {
-      case 'contains':
+      case "contains":
         return fieldValueString.includes(filterValueString);
-      case 'equals':
+      case "equals":
         return fieldValueString === filterValueString;
-      case 'notEquals':
+      case "notEquals":
         return fieldValueString !== filterValueString;
-      case 'startsWith':
+      case "startsWith":
         return fieldValueString.startsWith(filterValueString);
-      case 'endsWith':
+      case "endsWith":
         return fieldValueString.endsWith(filterValueString);
       // TODO: Add numeric/date operators here if needed
       default:
@@ -331,7 +349,7 @@ const IAMUsuariosPage = () => {
       return sourceData;
     }
 
-    return sourceData.filter(profile => {
+    return sourceData.filter((profile) => {
       if (!filters.length) return true; // No filters, show all
 
       const orGroups: AdvancedFilterCondition[][] = [];
@@ -341,7 +359,7 @@ const IAMUsuariosPage = () => {
         currentAndGroup.push(filters[i]);
         // La conjunción de filters[i] determina cómo se une con filters[i+1]
         // Si es OR, o si es la última condición, este grupo AND termina.
-        if (filters[i].conjunction === 'OR' || i === filters.length - 1) {
+        if (filters[i].conjunction === "OR" || i === filters.length - 1) {
           orGroups.push(currentAndGroup);
           currentAndGroup = [];
         }
@@ -355,9 +373,8 @@ const IAMUsuariosPage = () => {
         // Esto podría pasar si solo hay un filtro sin conjunción OR explícita.
         orGroups.push(currentAndGroup);
       }
-      
-      if (orGroups.length === 0) return true; // No debería pasar si filters.length > 0, pero como salvaguarda.
 
+      if (orGroups.length === 0) return true; // No debería pasar si filters.length > 0, pero como salvaguarda.
 
       // Evaluar cada grupo OR
       for (const andGroup of orGroups) {
@@ -385,10 +402,16 @@ const IAMUsuariosPage = () => {
     if (advancedFilters.length > 0) {
       dataToDisplay = filterDataWithAdvancedFilters(mockUsers, advancedFilters);
     } else {
-      const globalSearchFilter = columnFilters.find(f => f.id === 'full_name');
-      if (globalSearchFilter && typeof globalSearchFilter.value === 'string' && globalSearchFilter.value.trim() !== '') {
+      const globalSearchFilter = columnFilters.find(
+        (f) => f.id === "full_name"
+      );
+      if (
+        globalSearchFilter &&
+        typeof globalSearchFilter.value === "string" &&
+        globalSearchFilter.value.trim() !== ""
+      ) {
         const searchTerm = globalSearchFilter.value.toLowerCase();
-        dataToDisplay = mockUsers.filter(profile =>
+        dataToDisplay = mockUsers.filter((profile) =>
           profile.full_name?.toLowerCase().includes(searchTerm)
         );
       }
@@ -403,45 +426,36 @@ const IAMUsuariosPage = () => {
     if (savedPrefsString) {
       try {
         const savedPrefs = JSON.parse(savedPrefsString) as TablePreferences;
+        // console.log("Loaded table preferences from cookie:", savedPrefs); // DEBUG
+        
+        // Actualizar estados principales
         setPageSize(savedPrefs.pageSize ?? 10);
         setPaginationPosition(savedPrefs.paginationPosition ?? "bottom");
-        // Al cargar de cookies, usar lo guardado, o los iniciales si la cookie no tiene visibilidad
-        setColumnVisibility(
-          savedPrefs.columnVisibility ?? initialColumnVisibility
-        );
+        setColumnVisibility(savedPrefs.columnVisibility ?? initialColumnVisibility);
         setLineWrap(savedPrefs.lineWrap ?? false);
         setTableDensity(savedPrefs.tableDensity ?? "normal");
+        setColumnSizing(savedPrefs.columnSizing ?? {});
 
-        // Sincronizar estados temporales con los cargados de cookies al inicio
-        setTempLineWrap(savedPrefs.lineWrap ?? false);
-        setTempTableDensity(savedPrefs.tableDensity ?? "normal");
+        // Sincronizar estados temporales para el modal de preferencias
         setTempPageSize(savedPrefs.pageSize ?? 10);
         setTempPaginationPosition(savedPrefs.paginationPosition ?? "bottom");
-        setTempColumnVisibility(
-          savedPrefs.columnVisibility ?? initialColumnVisibility
-        );
+        setTempColumnVisibility(savedPrefs.columnVisibility ?? initialColumnVisibility);
+        setTempLineWrap(savedPrefs.lineWrap ?? false);
+        setTempTableDensity(savedPrefs.tableDensity ?? "normal");
 
-        // Aplicar pageSize a la tabla inmediatamente después de cargar de cookies
-        table.setPageSize(savedPrefs.pageSize ?? 10);
+        // La tabla debería recoger estos estados actualizados en su próxima renderización
+        // ya que pageSize, columnVisibility, columnSizing están en su dependencia 'state'.
+        // No es necesario llamar a table.setPageSize() aquí.
+
       } catch (error) {
         console.error("Error parsing table preferences from cookie:", error);
-        // Opcional: borrar cookie si está corrupta
-        // Cookies.remove(TABLE_PREFERENCES_COOKIE_KEY);
+        Cookies.remove(TABLE_PREFERENCES_COOKIE_KEY); // Eliminar cookie corrupta
       }
     }
-    // Sincronizar pageSize con la URL si no está ya allí
-    const params = new URLSearchParams(searchParams.toString());
-    if (!params.has("per_page")) {
-      params.set(
-        "per_page",
-        (savedPrefsString
-          ? JSON.parse(savedPrefsString).pageSize
-          : 10
-        ).toString()
-      );
-      router.push(`?${params.toString()}`, { scroll: false });
-    }
-  }, [searchParams, router, table]); // table se añade como dependencia para setPageSize
+    // La lógica de sincronización de 'per_page' con la URL se ha eliminado de este useEffect.
+    // Si se requiere, debe manejarse en un efecto separado que observe searchParams y pageSize.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Ejecutar solo una vez al montar para cargar desde cookies.
 
   // Guardar preferencias en cookies cuando cambien
   useEffect(() => {
@@ -490,9 +504,13 @@ const IAMUsuariosPage = () => {
     setAdvancedFilters(filters);
 
     if (filters.length > 0) {
-      Cookies.set(ADVANCED_FILTERS_COOKIE_KEY, JSON.stringify(filters), { expires: 7 }); // Guardar por 7 días
+      Cookies.set(ADVANCED_FILTERS_COOKIE_KEY, JSON.stringify(filters), {
+        expires: 7,
+      }); // Guardar por 7 días
       // Clear global search when advanced filters are applied
-      const currentGlobalFilter = columnFilters.find(f => f.id === 'full_name');
+      const currentGlobalFilter = columnFilters.find(
+        (f) => f.id === "full_name"
+      );
       if (currentGlobalFilter && currentGlobalFilter.value) {
         table.getColumn("full_name")?.setFilterValue("");
       }
@@ -509,7 +527,7 @@ const IAMUsuariosPage = () => {
     Cookies.remove(ADVANCED_FILTERS_COOKIE_KEY);
     table.setPageIndex(0); // Resetear paginación
     setShowAdvancedFilterBuilder(false); // Cerrar el modal
-     // Opcional: si la búsqueda global debe reaparecer o no.
+    // Opcional: si la búsqueda global debe reaparecer o no.
     // Si la búsqueda global también debe limpiarse:
     // const currentGlobalFilter = columnFilters.find(f => f.id === 'full_name');
     // if (currentGlobalFilter && currentGlobalFilter.value) {
@@ -614,7 +632,9 @@ const IAMUsuariosPage = () => {
           */}
 
           {totalPages > 0 && (
-            <div className="flex items-center space-x-1"> {/* Este div ahora es el primer hijo directo de space-x-4 si totalPages > 0 */}
+            <div className="flex items-center space-x-1">
+              {" "}
+              {/* Este div ahora es el primer hijo directo de space-x-4 si totalPages > 0 */}
               <Button
                 // O aplicar color primario: variant="default" o className="bg-primary text-primary-foreground hover:bg-primary/90"
                 // Por ahora, mantendremos outline para consistencia con los botones de acción de la tabla, pero se puede cambiar.
@@ -649,7 +669,6 @@ const IAMUsuariosPage = () => {
                 <span className="sr-only">Página anterior</span>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-
               <div className="flex items-center space-x-1 text-xs">
                 <span>Página</span>
                 <Input
@@ -691,7 +710,6 @@ const IAMUsuariosPage = () => {
                 />
                 <span>de {totalPages}</span>
               </div>
-
               <Button
                 variant="default"
                 className="h-8 w-8 p-0"
@@ -736,9 +754,18 @@ const IAMUsuariosPage = () => {
             />
           </div>
           {/* Botón para Filtros Avanzados */}
-          <Dialog open={showAdvancedFilterBuilder} onOpenChange={setShowAdvancedFilterBuilder}>
+          <Dialog
+            open={showAdvancedFilterBuilder}
+            onOpenChange={setShowAdvancedFilterBuilder}
+          >
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9 gap-1 relative"> {/* Añadido relative para posicionar el badge */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 gap-1 relative"
+              >
+                {" "}
+                {/* Añadido relative para posicionar el badge */}
                 <FilterIcon className="h-3.5 w-3.5" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                   Filtros Avanzados
@@ -757,8 +784,9 @@ const IAMUsuariosPage = () => {
               <DialogHeader className="p-6 pb-0">
                 <DialogTitle>Constructor de Filtros Avanzados</DialogTitle>
                 <DialogDescription>
-                  Cree condiciones de filtro complejas para refinar la lista de usuarios.
-                  Las condiciones se aplican secuencialmente según el operador Y/O.
+                  Cree condiciones de filtro complejas para refinar la lista de
+                  usuarios. Las condiciones se aplican secuencialmente según el
+                  operador Y/O.
                 </DialogDescription>
               </DialogHeader>
               <AdvancedFilterBuilder
