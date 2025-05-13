@@ -64,28 +64,40 @@ export default async function DashboardPage() {
               authorAvatarUrl={profile.avatar_url || undefined}
               postTime="Hace 10 minutos"
               postContent="¡Hola equipo! Solo quería compartir una actualización rápida sobre el proyecto Alpha. ¡Estamos progresando muy bien y esperamos alcanzar nuestros próximos hitos esta semana! 🔥 #Progreso #EquipoAlpha"
-              commentsCount={12}
+              commentsCount={2}
               repostsCount={3}
-              likesCount={45}
+              likesCount={45} // Este es el 'Heart' original, podría reevaluarse
+              comments={[
+                { id: "comment1", authorName: "Elena Max", authorInitials: "EM", commentText: "¡Excelente noticia! Sigan así.", commentTime: "Hace 5 min" },
+                { id: "comment2", authorName: "Juan Pérez", authorInitials: "JP", commentText: "Gracias por la actualización.", commentTime: "Hace 2 min" },
+              ]}
+              reactions={{ thumbsUp: 25, celebrate: 10, laugh: 5 }}
             />
             <PostCard
               authorName="Ana López"
               authorInitials="AL"
-              // authorAvatarUrl="https://ruta.a.imagen/ana.jpg" // Ejemplo de URL de avatar
+              authorAvatarUrl="/placeholder-user.jpg" // Ejemplo de URL de avatar
               postTime="Hace 1 hora"
               postContent="Acabo de leer un artículo fascinante sobre las últimas tendencias en IA. Definitivamente vale la pena echarle un vistazo. ¿Alguien más lo ha visto? 🤔 #IA #Tecnología"
-              commentsCount={5}
+              commentsCount={1}
               repostsCount={1}
               likesCount={22}
+              comments={[
+                { id: "comment3", authorName: "Carlos Ruiz", authorInitials: "CR", commentText: "Muy interesante, Ana. ¿Puedes compartir el enlace?", commentTime: "Hace 30 min" },
+              ]}
+              reactions={{ thumbsUp: 15, celebrate: 5, laugh: 2 }}
             />
             <PostCard
               authorName="Carlos Ruiz"
               authorInitials="CR"
+              // authorAvatarUrl="" // Sin avatar, usará fallback
               postTime="Hace 3 horas"
               postContent="Recordatorio amistoso: la reunión de planificación del sprint es mañana a las 10 AM. ¡Preparen sus ideas! 🚀"
-              commentsCount={8}
+              commentsCount={0}
               repostsCount={0}
               likesCount={15}
+              comments={[]}
+              reactions={{ thumbsUp: 10, celebrate: 3, laugh: 1 }}
             />
           </div>{" "}
           {/* Fin del contenedor para los posts */}
