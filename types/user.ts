@@ -9,6 +9,10 @@ export interface Profile {
   department: string | null
   position: string | null
   last_sign_in: string | null
+  average_grade?: number | null // Calificación promedio
+  points?: number | null // Puntos acumulados
+  pending_tasks?: number | null // Tareas pendientes por hacer
+  due_soon_tasks?: number | null // Tareas pendientes por vencer pronto
 }
 
 export interface Role {

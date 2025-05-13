@@ -86,6 +86,15 @@ function EscuelaAltipalMenu({ pathname }: { pathname: string }) {
       <NavLink href="/dashboard/escuela-altipal/mis-calificaciones" pathname={pathname}>
         Mis Calificaciones
       </NavLink>
+      <NavLink href="/dashboard/escuela-altipal/catalogo-cursos" pathname={pathname}>
+        Catálogo de Cursos
+      </NavLink>
+      <NavLink href="/dashboard/escuela-altipal/rutas-aprendizaje" pathname={pathname}>
+        Rutas de Aprendizaje
+      </NavLink>
+      <NavLink href="/dashboard/escuela-altipal/certificados" pathname={pathname}>
+        Certificados
+      </NavLink>
       {/* Agrega más enlaces aquí si es necesario */}
     </nav>
   )
