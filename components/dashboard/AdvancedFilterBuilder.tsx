@@ -98,9 +98,24 @@ const AdvancedFilterBuilder = <TData extends {}>({
       fieldName: filterableColumns.length > 0 ? filterableColumns[0].label : "",
       operator: OPERATORS[0].value,
       value: "",
-      conjunction: conjunction,
+      // La conjunción por defecto de una NUEVA condición debe ser AND,
+      // ya que define cómo se une con la siguiente que se añada.
+      // El selector que aparece ANTES de esta nueva condición (si no es la primera)
+      // controlará la conjunción de la condición PREVIA.
+      conjunction: "AND",
     };
-    setFilterConditions((prev) => [...prev, newCondition]);
+    // Si hay condiciones previas, y la última condición previa tiene una conjunción,
+    // esa es la que se usó para añadir esta nueva.
+    // No, la 'conjunction' en addCondition es para la condición que se está añadiendo,
+    // y determina cómo se unirá con la *siguiente*.
+    // La lógica actual de `addCondition` parece correcta para la propiedad `conjunction`
+    // de la nueva condición en sí. El cambio principal es en el `onValueChange` del Select.
+    // Dejamos la conjunción de la nueva condición como 'AND' por defecto.
+    // Si se añade con 'OR' explícitamente (ej. un botón "Añadir OR"), entonces `conjunction` sería 'OR'.
+    // El `addCondition` actual recibe `conjunction` como argumento, lo cual es flexible.
+    // Por defecto es AND.
+    const finalNewCondition = { ...newCondition, conjunction: conjunction };
+    setFilterConditions((prev) => [...prev, finalNewCondition]);
   };
 
   const updateCondition = (
@@ -146,10 +161,18 @@ const AdvancedFilterBuilder = <TData extends {}>({
             {index > 0 && (
               <div className="mb-2">
                 <Select
-                  value={condition.conjunction}
-                  onValueChange={(value: "AND" | "OR") =>
-                    updateCondition(index, { conjunction: value })
-                  }
+                  // El valor del Select debe ser la conjunción de la condición ANTERIOR
+                  // si estamos mostrando el selector para la condición actual (index).
+                  // La conjunción de la condición actual (condition.conjunction o filterConditions[index].conjunction)
+                  // se usa para unirse con la SIGUIENTE condición.
+                  // Por lo tanto, este Select controla filterConditions[index - 1].conjunction.
+                  value={filterConditions[index - 1]?.conjunction || "AND"}
+                  onValueChange={(value: "AND" | "OR") => {
+                    // Actualizar la conjunción de la condición ANTERIOR (index - 1)
+                    if (index > 0) {
+                      updateCondition(index - 1, { conjunction: value });
+                    }
+                  }}
                 >
                   <SelectTrigger className="w-24 h-8 text-xs">
                     <SelectValue placeholder="Unir con..." />
