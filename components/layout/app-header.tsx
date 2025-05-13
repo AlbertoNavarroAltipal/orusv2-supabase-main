@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, Info, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -23,11 +24,17 @@ export function AppHeader() {
         </Button>
 
         <div className="text-sm text-gray-600">
-          {currentModule && <span className="capitalize">{currentModule}</span>}
+          {currentModule && (
+            <Link href={`/${pathSegments.slice(0, 1).join("/")}`} legacyBehavior>
+              <a className="capitalize hover:underline">{currentModule}</a>
+            </Link>
+          )}
           {currentPage && (
             <>
               <span className="mx-2">/</span>
-              <span className="capitalize">{currentPage}</span>
+              <Link href={`/${pathSegments.slice(0, 2).join("/")}`} legacyBehavior>
+                <a className="capitalize hover:underline">{currentPage}</a>
+              </Link>
             </>
           )}
         </div>

@@ -11,6 +11,13 @@ import { PostCard } from "@/components/dashboard/PostCard"; // <-- Nueva importa
 import { Textarea } from "@/components/ui/textarea"; // <-- Nueva importación
 import { Button } from "@/components/ui/button"; // <-- Nueva importación
 import { Image as ImageIcon, Send, Film, Smile } from "lucide-react"; // <-- Nuevas importaciones de iconos
+import { CalendarWidget } from "@/components/dashboard/widgets/CalendarWidget";
+import { EventsWidget } from "@/components/dashboard/widgets/EventsWidget";
+import { TasksWidget } from "@/components/dashboard/widgets/TasksWidget";
+import { DailySupportWidget } from "@/components/dashboard/widgets/DailySupportWidget";
+import { BirthdaysWidget } from "@/components/dashboard/widgets/BirthdaysWidget";
+import { UserProfileSummaryCard } from "@/components/dashboard/widgets/UserProfileSummaryCard";
+import { Settings2 } from "lucide-react"; // Icono para el botón Gestionar
 
 export default async function DashboardPage() {
   const profile = await getUserProfile();
@@ -113,57 +120,25 @@ export default async function DashboardPage() {
 
         {/* Columna Derecha */}
         <div className="w-1/3 flex flex-col gap-6 overflow-y-auto p-1">
-          {/* Widget 1 */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-base font-medium">Widget 1</CardTitle>
-              {/* Placeholder para botón de ajustes */}
-              <button className="text-muted-foreground hover:text-primary text-sm">
-                [Ajustes]
-              </button>
-            </CardHeader>
-            <CardContent>
-              <div className="h-32 bg-muted rounded-md flex items-center justify-center">
-                <p className="text-sm text-muted-foreground">
-                  [Contenido del Widget 1]
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Título de Widgets y Botón Gestionar */}
+          <div className="flex items-center justify-between pt-1">
+            <h2 className="text-xl font-semibold tracking-tight">Widgets</h2>
+            <Button variant="outline" size="sm">
+              <Settings2 className="h-4 w-4 mr-2" />
+              Gestionar
+            </Button>
+          </div>
 
-          {/* Widget 2 */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-base font-medium">Widget 2</CardTitle>
-              <button className="text-muted-foreground hover:text-primary text-sm">
-                [Ajustes]
-              </button>
-            </CardHeader>
-            <CardContent>
-              <div className="h-32 bg-muted rounded-md flex items-center justify-center">
-                <p className="text-sm text-muted-foreground">
-                  [Contenido del Widget 2]
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Resumen de Perfil de Usuario */}
+          <UserProfileSummaryCard profile={profile} initials={initials} />
 
-          {/* Widget 3 (puedes añadir más según necesites) */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-base font-medium">Widget 3</CardTitle>
-              <button className="text-muted-foreground hover:text-primary text-sm">
-                [Ajustes]
-              </button>
-            </CardHeader>
-            <CardContent>
-              <div className="h-32 bg-muted rounded-md flex items-center justify-center">
-                <p className="text-sm text-muted-foreground">
-                  [Contenido del Widget 3]
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Nuevos Widgets */}
+          <CalendarWidget />
+          <EventsWidget />
+          <TasksWidget />
+          <DailySupportWidget />
+          <BirthdaysWidget />
+          {/* Puedes añadir más widgets aquí o reorganizarlos según sea necesario */}
         </div>
       </div>
     </div>
