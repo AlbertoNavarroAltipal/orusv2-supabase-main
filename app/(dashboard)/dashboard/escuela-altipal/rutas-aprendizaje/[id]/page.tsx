@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import PageSubheader from '@/components/dashboard/page-subheader'; // Importar el nuevo componente
 
 // Simulación de datos de rutas (en una aplicación real, esto vendría de una API o base de datos)
 const todasLasRutas = [
@@ -70,13 +71,15 @@ const RutaDetailPage: React.FC<RutaDetailPageProps> = ({ params }) => {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <Link href="/dashboard/escuela-altipal/rutas-aprendizaje" className="mb-6 inline-block">
-        <Button variant="outline">&larr; Volver a todas las Rutas</Button>
-      </Link>
-
-      <Card className="mb-8">
-        <CardHeader>
+    <React.Fragment>
+      <PageSubheader title={ruta.titulo || "Detalle de Ruta de Aprendizaje"}>
+        <Link href="/dashboard/escuela-altipal/rutas-aprendizaje">
+          <Button variant="outline">&larr; Volver a todas las Rutas</Button>
+        </Link>
+      </PageSubheader>
+      <main className="container mx-auto p-4">
+        <Card className="mb-8">
+          <CardHeader>
           <div className="aspect-video bg-muted rounded-md mb-4 overflow-hidden">
             <img 
               src={ruta.imagen} 
@@ -109,7 +112,8 @@ const RutaDetailPage: React.FC<RutaDetailPageProps> = ({ params }) => {
       <div className="mt-8 text-center">
         <Button size="lg">Inscribirse en esta Ruta de Aprendizaje</Button>
       </div>
-    </div>
+    </main>
+    </React.Fragment>
   );
 };
 

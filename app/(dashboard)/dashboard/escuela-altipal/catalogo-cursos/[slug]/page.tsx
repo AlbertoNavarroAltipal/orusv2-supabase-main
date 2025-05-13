@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import PageSubheader from "@/components/dashboard/page-subheader"; // Importar el nuevo componente
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -264,17 +265,18 @@ const CourseDetailPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <div className="mb-6">
+    <React.Fragment>
+      <PageSubheader title={course.title || "Detalle del Curso"}>
         <Button variant="outline" size="sm" asChild>
           <Link href="/dashboard/escuela-altipal/catalogo-cursos">
             <ArrowLeftIcon className="mr-2 h-4 w-4" /> Volver al Catálogo
           </Link>
         </Button>
-      </div>
-
-      <header className="mb-8 md:mb-12">
-        <div className="relative w-full h-60 md:h-96 rounded-lg overflow-hidden shadow-lg mb-6">
+      </PageSubheader>
+      <main className="container mx-auto p-4 md:p-8">
+        <header className="mb-8 md:mb-12">
+          {/* El título principal del curso ahora está en el PageSubheader, el resto del header original se mantiene */}
+          <div className="relative w-full h-60 md:h-96 rounded-lg overflow-hidden shadow-lg mb-6">
           <Image
             src={course.imageUrl}
             alt={course.title}
@@ -286,9 +288,7 @@ const CourseDetailPage = () => {
             <Badge variant="secondary" className="mb-2 text-sm">
               {course.category}
             </Badge>
-            <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight">
-              {course.title}
-            </h1>
+            {/* Se elimina el h1 de aquí ya que está en el PageSubheader */}
           </div>
         </div>
 
@@ -421,7 +421,8 @@ const CourseDetailPage = () => {
           </div>
         </aside>
       </div>
-    </div>
+    </main>
+    </React.Fragment>
   );
 };
 

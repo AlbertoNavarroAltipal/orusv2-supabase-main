@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import PageSubheader from "@/components/dashboard/page-subheader"; // Importar el nuevo componente
 import Image from "next/image";
 import {
   Card,
@@ -213,24 +214,14 @@ const CatalogoCursosPage = () => {
   });
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <header className="mb-8 text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-          Catálogo de Cursos
-        </h1>
-        <p className="mt-4 text-lg leading-8 text-gray-600 dark:text-gray-300">
-          Explora nuestra oferta formativa y encuentra el curso perfecto para
-          ti.
-        </p>
-      </header>
-
-      <div className="mb-8 p-4 bg-card rounded-lg shadow-sm sticky top-0 z-10 backdrop-blur-md bg-opacity-80 dark:bg-opacity-80">
-        <div className="flex flex-col md:flex-row gap-4 items-center">
+    <React.Fragment>
+      <PageSubheader title="Catálogo de Cursos">
+        <div className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto">
           <div className="relative flex-grow w-full md:w-auto">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Buscar cursos por título, descripción o etiqueta..."
+              placeholder="Buscar cursos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-full"
@@ -238,7 +229,7 @@ const CatalogoCursosPage = () => {
           </div>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="Filtrar por categoría" />
+              <SelectValue placeholder="Categoría" />
             </SelectTrigger>
             <SelectContent>
               {categories.map((category) => (
@@ -249,9 +240,13 @@ const CatalogoCursosPage = () => {
             </SelectContent>
           </Select>
         </div>
-      </div>
-
-      {isLoading ? (
+      </PageSubheader>
+      <main className="container mx-auto p-4 md:p-8">
+        {/* La descripción "Explora nuestra oferta..." puede ir aquí si se desea, o eliminarse si el título es suficiente. */}
+        {/* <p className="text-center text-gray-600 mb-8 dark:text-gray-300">
+          Explora nuestra oferta formativa y encuentra el curso perfecto para ti.
+        </p> */}
+        {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[...Array(8)].map((_, index) => (
             <Card key={index} className="flex flex-col h-full">
@@ -291,7 +286,8 @@ const CatalogoCursosPage = () => {
           </p>
         </div>
       )}
-    </div>
+    </main>
+    </React.Fragment>
   );
 };
 

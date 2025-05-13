@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Head from 'next/head'; // Para importar fuentes de Google
+import PageSubheader from '@/components/dashboard/page-subheader'; // Importar el nuevo componente
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DownloadCloud, Eye } from 'lucide-react'; // Iconos
@@ -73,13 +74,12 @@ const CertificadosPage = () => {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Montserrat:wght@400;500;700&family=Satisfy&display=swap" rel="stylesheet" />
       </Head>
-      <div className="container mx-auto p-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Mis Certificados</h1>
-          <p className="text-muted-foreground">
-            Aquí puedes ver y descargar los certificados de los cursos y rutas de aprendizaje que has completado.
-          </p>
-        </div>
+      <PageSubheader title="Mis Certificados" />
+      <main className="container mx-auto p-4">
+        <p className="text-muted-foreground mb-8">
+          Aquí puedes ver y descargar los certificados de los cursos y rutas de aprendizaje que has completado.
+        </p>
+        {/* El h1 y la descripción se movieron o se pueden ajustar/eliminar */}
 
         {certificadosObtenidos.length === 0 ? (
           <div className="text-center py-10">
@@ -132,7 +132,7 @@ const CertificadosPage = () => {
             certificate={selectedCertificate}
           />
         )}
-      </div>
+      </main>
     </>
   );
 };

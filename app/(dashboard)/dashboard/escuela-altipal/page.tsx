@@ -3,6 +3,7 @@
 
 import React from "react";
 import Link from "next/link";
+import PageSubheader from "@/components/dashboard/page-subheader"; // Importar el nuevo componente
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserProfileSummaryCard } from "@/components/dashboard/widgets/UserProfileSummaryCard";
 import { useAuth } from "@/lib/auth/auth-provider";
@@ -81,10 +82,12 @@ const EscuelaAltipalPage = () => {
   ];
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6 text-center">Escuela Altipal</h1>
+    <React.Fragment>
+      <PageSubheader title="Escuela Altipal" />
+      <main className="container mx-auto p-4">
+        {/* <h1 className="text-3xl font-bold mb-6 text-center">Escuela Altipal</h1> Ya no es necesario aquí */}
 
-      {isLoading && (
+        {isLoading && (
         <div className="mb-8 grid grid-cols-1 md:grid-cols-3">
           <div className="md:col-span-1">
             <Skeleton className="h-[280px] w-full rounded-lg" />
@@ -131,7 +134,8 @@ const EscuelaAltipalPage = () => {
           </Link>
         ))}
       </div>
-    </div>
+    </main>
+    </React.Fragment>
   );
 };
 

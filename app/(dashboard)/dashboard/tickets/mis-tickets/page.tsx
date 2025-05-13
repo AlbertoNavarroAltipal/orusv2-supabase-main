@@ -1,4 +1,5 @@
 import React from "react";
+import PageSubheader from "@/components/dashboard/page-subheader"; // Importar el nuevo componente
 import {
   Table,
   TableBody,
@@ -61,42 +62,37 @@ const sampleTickets = [
 
 const MisTicketsPage = () => {
   return (
-    <div className="container mx-auto p-4 md:p-6 lg:p-8">
-      <header className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Mis Tickets</h1>
-        <p className="text-gray-600">
-          Visualiza y gestiona los tickets que has creado.
-        </p>
-      </header>
-
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-          <div className="relative w-full md:w-1/3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <Input
-              placeholder="Buscar tickets por asunto o ID..."
-              className="pl-10"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Select defaultValue="todos">
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filtrar por estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="abierto">Abierto</SelectItem>
-                <SelectItem value="en_progreso">En Progreso</SelectItem>
-                <SelectItem value="cerrado">Cerrado</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline">
-              <Filter className="mr-2 h-4 w-4" /> Filtros Avanzados
-            </Button>
-          </div>
+    <>
+      <PageSubheader title="Mis Tickets">
+        <div className="relative w-full md:w-1/3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Input
+            placeholder="Buscar tickets por asunto o ID..."
+            className="pl-10"
+          />
         </div>
-
-        <div className="overflow-x-auto">
+        <div className="flex items-center gap-2">
+          <Select defaultValue="todos">
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filtrar por estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos los estados</SelectItem>
+              <SelectItem value="abierto">Abierto</SelectItem>
+              <SelectItem value="en_progreso">En Progreso</SelectItem>
+              <SelectItem value="cerrado">Cerrado</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline">
+            <Filter className="mr-2 h-4 w-4" /> Filtros Avanzados
+          </Button>
+        </div>
+      </PageSubheader>
+      <main className="container mx-auto p-4 md:p-6 lg:p-8">
+        <div className="bg-white shadow-md rounded-lg p-6">
+          {/* La descripción "Visualiza y gestiona los tickets que has creado." se puede mover aquí si es necesario, o eliminar si el título es suficiente. */}
+          {/* <p className="text-gray-600 mb-6">Visualiza y gestiona los tickets que has creado.</p> */}
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -171,7 +167,7 @@ const MisTicketsPage = () => {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 };
 

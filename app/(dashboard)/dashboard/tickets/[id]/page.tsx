@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import PageSubheader from "@/components/dashboard/page-subheader"; // Importar el nuevo componente
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -364,17 +365,18 @@ const TicketDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
-      <Button
-        variant="outline"
-        onClick={() => router.push("/dashboard/tickets")}
-        className="mb-6"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" /> Volver a la lista
-      </Button>
-
-      <Card className="mb-6 shadow-lg">
-        <CardHeader>
+    <>
+      <PageSubheader title={`Detalle del Ticket: ${ticket.id}`}>
+        <Button
+          variant="outline"
+          onClick={() => router.push("/dashboard/tickets")}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" /> Volver a la lista
+        </Button>
+      </PageSubheader>
+      <main className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+        <Card className="mb-6 shadow-lg">
+          <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <CardTitle className="text-2xl font-bold text-primary-600">
@@ -568,8 +570,8 @@ const TicketDetailPage = () => {
           </Card>
 
         </div>
-      </div>
-    </div>
+      </main>
+    </>
   );
 };
 

@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import PageSubheader from "@/components/dashboard/page-subheader"; // Importar el nuevo componente
 import {
   Card,
   CardContent,
@@ -158,14 +159,8 @@ const customBarTooltip = ({ active, payload, label }: ChartTooltipProps) => {
 
 export default function TicketsAnalyticsPage() {
   return (
-    <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-8 bg-slate-50 min-h-screen">
-      <header className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 mb-8">
-        <div className="flex items-center space-x-3">
-          <Activity className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-800">
-            Análisis de Tickets
-          </h1>
-        </div>
+    <React.Fragment>
+      <PageSubheader title="Análisis de Tickets">
         <div className="flex items-center space-x-3">
           <Button
             variant="outline"
@@ -180,10 +175,10 @@ export default function TicketsAnalyticsPage() {
             Anuncios
           </Button>
         </div>
-      </header>
-
-      {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5">
+      </PageSubheader>
+      <main className="container mx-auto p-4 md:p-6 lg:p-8 space-y-8 bg-slate-50 min-h-screen">
+        {/* KPIs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5">
         <KpiCard
           title="Tickets Vencidos"
           value={kpiData.overdueTickets}
@@ -505,6 +500,7 @@ export default function TicketsAnalyticsPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </main>
+    </React.Fragment>
   );
 }

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Globe, Folder, Clock, MessageSquare, PlusCircle, Filter as FilterIcon } from "lucide-react";
+import PageSubheader from "@/components/dashboard/page-subheader"; // Importar el nuevo componente
 
 // Definición del tipo para un Ticket
 interface Ticket {
@@ -224,15 +225,12 @@ const TicketsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div><h1 className="text-2xl font-semibold text-primary-600">Gestión de Tickets Altipal</h1></div>
-          <div className="relative w-full max-w-md">
-            <Input type="search" placeholder="Buscar Tickets por ID, asunto..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pr-10 h-10 border-gray-300 focus:border-primary-500 focus:ring-primary-500" />
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-          </div>
+      <PageSubheader title="Gestión de Tickets Altipal">
+        <div className="relative w-full max-w-md">
+          <Input type="search" placeholder="Buscar Tickets por ID, asunto..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pr-10 h-10 border-gray-300 focus:border-primary-500 focus:ring-primary-500" />
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
         </div>
-      </header>
+      </PageSubheader>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

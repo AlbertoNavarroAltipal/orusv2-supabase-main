@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import PageSubheader from '@/components/dashboard/page-subheader'; // Importar el nuevo componente
 
 const rutasAprendizaje = [
   {
@@ -32,15 +33,14 @@ const rutasAprendizaje = [
 
 const RutasAprendizajePage = () => {
   return (
-    <div className="container mx-auto p-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Rutas de Aprendizaje</h1>
-        <p className="text-muted-foreground">
+    <React.Fragment>
+      <PageSubheader title="Rutas de Aprendizaje" />
+      <main className="container mx-auto p-4">
+        <p className="text-muted-foreground mb-8">
           Explora nuestras rutas de aprendizaje diseñadas para ayudarte a alcanzar tus metas profesionales.
         </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* El h1 se movió al PageSubheader */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {rutasAprendizaje.map((ruta) => (
           <Card key={ruta.id} className="flex flex-col">
             <CardHeader>
@@ -68,7 +68,8 @@ const RutasAprendizajePage = () => {
           </Card>
         ))}
       </div>
-    </div>
+    </main>
+    </React.Fragment>
   );
 };
 

@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import PageSubheader from "@/components/dashboard/page-subheader"; // Importar el nuevo componente
 import {
   Card,
   CardContent,
@@ -56,17 +57,14 @@ const coursesData = [
 
 const MisCursosPage = () => {
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-          Mis Cursos
-        </h1>
-        <p className="text-gray-600 text-lg">
+    <React.Fragment>
+      <PageSubheader title="Mis Cursos" />
+      <main className="container mx-auto p-4 md:p-8">
+        <p className="text-gray-600 text-lg mb-8">
           Continúa tu aprendizaje y alcanza tus metas.
         </p>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+        {/* El h1 se movió al PageSubheader */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
         {coursesData.map((course) => (
           <Card
             key={course.id}
@@ -120,7 +118,8 @@ const MisCursosPage = () => {
           </Card>
         ))}
       </div>
-    </div>
+    </main>
+    </React.Fragment>
   );
 };
 

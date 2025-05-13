@@ -1,4 +1,5 @@
 import React from 'react';
+import PageSubheader from '@/components/dashboard/page-subheader'; // Importar el nuevo componente
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,14 +20,13 @@ const sampleTickets = [
 
 export default function TicketsAgentesPage() {
   return (
-    <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-6">
-      <header className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-        <h1 className="text-2xl md:text-3xl font-bold">Gestión de Tickets de Agentes</h1>
+    <React.Fragment>
+      <PageSubheader title="Gestión de Tickets de Agentes">
         <Button>Crear Nuevo Ticket</Button>
-      </header>
-
-      <Card>
-        <CardHeader>
+      </PageSubheader>
+      <main className="container mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+        <Card>
+          <CardHeader>
           <CardTitle className="text-lg">Filtros y Búsqueda</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -170,6 +170,7 @@ export default function TicketsAgentesPage() {
           </PaginationItem>
         </PaginationContent>
       </Pagination>
-    </div>
+    </main>
+    </React.Fragment>
   );
 }
