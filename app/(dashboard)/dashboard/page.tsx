@@ -6,11 +6,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PostCard } from "@/components/dashboard/PostCard"; // <-- Nueva importación
-import { Textarea } from "@/components/ui/textarea"; // <-- Nueva importación
-import { Button } from "@/components/ui/button"; // <-- Nueva importación
-import { Image as ImageIcon, Send, Film, Smile } from "lucide-react"; // <-- Nuevas importaciones de iconos
+// Avatar ya no es necesario aquí directamente para el formulario de post
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PostCard } from "@/components/dashboard/PostCard";
+// Textarea ya no es necesario aquí directamente para el formulario de post, se usa en CreatePostForm
+// import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button"; // <-- Restauramos la importación de Button
+// Iconos de acción de post se mueven a CreatePostForm
+// import { Image as ImageIcon, Send, Film, Smile } from "lucide-react";
+import { CreatePostForm } from "@/components/dashboard/CreatePostForm"; // <-- Importamos el nuevo componente
 import { CalendarWidget } from "@/components/dashboard/widgets/CalendarWidget";
 import { EventsWidget } from "@/components/dashboard/widgets/EventsWidget";
 import { TasksWidget } from "@/components/dashboard/widgets/TasksWidget";
@@ -47,75 +51,44 @@ export default async function DashboardPage() {
       <div className="flex flex-1 gap-6 overflow-hidden">
         {/* Columna Izquierda */}
         <div className="w-2/3 flex flex-col gap-6 overflow-y-auto p-1">
-          {/* Sección: Formulario para crear post */}
-          <Card className="p-0"> {/* Eliminamos padding por defecto para controlar el espaciado interno */}
-            <CardContent className="p-4">
-              <div className="flex items-start space-x-4">
-                <Avatar className="h-10 w-10 border">
-                  <AvatarImage src={profile.avatar_url || undefined} alt={`@${profile.full_name}`} />
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <Textarea
-                    placeholder="¿Qué está pasando?"
-                    className="w-full min-h-[80px] border-none focus-visible:ring-0 resize-none p-2 shadow-none"
-                  />
-                  <div className="flex items-center justify-between mt-2 pt-2 border-t">
-                    <div className="flex space-x-2">
-                      <Button variant="ghost" size="icon" className="text-sky-500 hover:bg-sky-100 dark:hover:bg-sky-900">
-                        <ImageIcon className="h-5 w-5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-sky-500 hover:bg-sky-100 dark:hover:bg-sky-900">
-                        <Film className="h-5 w-5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-sky-500 hover:bg-sky-100 dark:hover:bg-sky-900">
-                        <Smile className="h-5 w-5" />
-                      </Button>
-                      {/* Otros botones de acción como encuestas, etc. */}
-                    </div>
-                    <Button className="rounded-full bg-sky-500 hover:bg-sky-600 text-white">
-                      Postear
-                      <Send className="h-4 w-4 ml-2" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
+          {/* Sección: Formulario para crear post usando el nuevo componente */}
+          <CreatePostForm profile={profile} initials={initials} />
           {/* Sección: Tipos de post para empresa (muro) - El Card contenedor ha sido eliminado */}
           {/* Posts utilizando el nuevo componente PostCard */}
-          <div className="flex flex-col space-y-4"> {/* Contenedor para los posts con espaciado */}
+          <div className="flex flex-col space-y-4">
+            {" "}
+            {/* Contenedor para los posts con espaciado */}
             <PostCard
               authorName={profile.full_name || "Usuario de Orus"}
-                authorInitials={initials}
-                authorAvatarUrl={profile.avatar_url || undefined}
-                postTime="Hace 10 minutos"
-                postContent="¡Hola equipo! Solo quería compartir una actualización rápida sobre el proyecto Alpha. ¡Estamos progresando muy bien y esperamos alcanzar nuestros próximos hitos esta semana! 🔥 #Progreso #EquipoAlpha"
-                commentsCount={12}
-                repostsCount={3}
-                likesCount={45}
-              />
-              <PostCard
-                authorName="Ana López"
-                authorInitials="AL"
-                // authorAvatarUrl="https://ruta.a.imagen/ana.jpg" // Ejemplo de URL de avatar
-                postTime="Hace 1 hora"
-                postContent="Acabo de leer un artículo fascinante sobre las últimas tendencias en IA. Definitivamente vale la pena echarle un vistazo. ¿Alguien más lo ha visto? 🤔 #IA #Tecnología"
-                commentsCount={5}
-                repostsCount={1}
-                likesCount={22}
-              />
-              <PostCard
-                authorName="Carlos Ruiz"
-                authorInitials="CR"
-                postTime="Hace 3 horas"
-                postContent="Recordatorio amistoso: la reunión de planificación del sprint es mañana a las 10 AM. ¡Preparen sus ideas! 🚀"
-                commentsCount={8}
-                repostsCount={0}
-                likesCount={15}
-              />
-            </div> {/* Fin del contenedor para los posts */}
+              authorInitials={initials}
+              authorAvatarUrl={profile.avatar_url || undefined}
+              postTime="Hace 10 minutos"
+              postContent="¡Hola equipo! Solo quería compartir una actualización rápida sobre el proyecto Alpha. ¡Estamos progresando muy bien y esperamos alcanzar nuestros próximos hitos esta semana! 🔥 #Progreso #EquipoAlpha"
+              commentsCount={12}
+              repostsCount={3}
+              likesCount={45}
+            />
+            <PostCard
+              authorName="Ana López"
+              authorInitials="AL"
+              // authorAvatarUrl="https://ruta.a.imagen/ana.jpg" // Ejemplo de URL de avatar
+              postTime="Hace 1 hora"
+              postContent="Acabo de leer un artículo fascinante sobre las últimas tendencias en IA. Definitivamente vale la pena echarle un vistazo. ¿Alguien más lo ha visto? 🤔 #IA #Tecnología"
+              commentsCount={5}
+              repostsCount={1}
+              likesCount={22}
+            />
+            <PostCard
+              authorName="Carlos Ruiz"
+              authorInitials="CR"
+              postTime="Hace 3 horas"
+              postContent="Recordatorio amistoso: la reunión de planificación del sprint es mañana a las 10 AM. ¡Preparen sus ideas! 🚀"
+              commentsCount={8}
+              repostsCount={0}
+              likesCount={15}
+            />
+          </div>{" "}
+          {/* Fin del contenedor para los posts */}
         </div>
 
         {/* Columna Derecha */}
