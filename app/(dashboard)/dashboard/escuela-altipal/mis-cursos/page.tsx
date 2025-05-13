@@ -58,12 +58,12 @@ const coursesData = [
 const MisCursosPage = () => {
   return (
     <React.Fragment>
-      <PageSubheader title="Mis Cursos" />
+      <PageSubheader
+        title="Mis Cursos"
+        description="Continúa tu aprendizaje y alcanza tus metas."
+      />
       <main className="container mx-auto p-4 md:p-8">
-        <p className="text-gray-600 text-lg mb-8">
-          Continúa tu aprendizaje y alcanza tus metas.
-        </p>
-        {/* El h1 se movió al PageSubheader */}
+        {/* La descripción <p> se movió al PageSubheader */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
         {coursesData.map((course) => (
           <Card

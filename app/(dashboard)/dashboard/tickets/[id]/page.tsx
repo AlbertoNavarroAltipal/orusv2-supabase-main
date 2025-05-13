@@ -366,7 +366,10 @@ const TicketDetailPage = () => {
 
   return (
     <>
-      <PageSubheader title={`Detalle del Ticket: ${ticket.id}`}>
+      <PageSubheader
+        title={`Detalle del Ticket: ${ticket.id}`}
+        description="Información detallada, historial y acciones del ticket."
+      >
         <Button
           variant="outline"
           onClick={() => router.push("/dashboard/tickets")}

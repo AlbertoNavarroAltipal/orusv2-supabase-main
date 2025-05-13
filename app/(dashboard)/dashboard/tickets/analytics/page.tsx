@@ -160,7 +160,10 @@ const customBarTooltip = ({ active, payload, label }: ChartTooltipProps) => {
 export default function TicketsAnalyticsPage() {
   return (
     <React.Fragment>
-      <PageSubheader title="Análisis de Tickets">
+      <PageSubheader
+        title="Análisis de Tickets"
+        description="Visualiza métricas y estadísticas clave sobre los tickets de soporte."
+      >
         <div className="flex items-center space-x-3">
           <Button
             variant="outline"

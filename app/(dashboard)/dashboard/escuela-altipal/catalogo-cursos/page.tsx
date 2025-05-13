@@ -215,7 +215,10 @@ const CatalogoCursosPage = () => {
 
   return (
     <React.Fragment>
-      <PageSubheader title="Catálogo de Cursos">
+      <PageSubheader
+        title="Catálogo de Cursos"
+        description="Explora nuestra oferta formativa y encuentra el curso perfecto para ti."
+      >
         <div className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto">
           <div className="relative flex-grow w-full md:w-auto">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -242,10 +245,7 @@ const CatalogoCursosPage = () => {
         </div>
       </PageSubheader>
       <main className="container mx-auto p-4 md:p-8">
-        {/* La descripción "Explora nuestra oferta..." puede ir aquí si se desea, o eliminarse si el título es suficiente. */}
-        {/* <p className="text-center text-gray-600 mb-8 dark:text-gray-300">
-          Explora nuestra oferta formativa y encuentra el curso perfecto para ti.
-        </p> */}
+        {/* La descripción se movió al PageSubheader */}
         {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[...Array(8)].map((_, index) => (

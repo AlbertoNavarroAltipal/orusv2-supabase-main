@@ -266,7 +266,10 @@ const CourseDetailPage = () => {
 
   return (
     <React.Fragment>
-      <PageSubheader title={course.title || "Detalle del Curso"}>
+      <PageSubheader
+        title={course.title || "Detalle del Curso"}
+        description={course.description} // Usar la descripción corta del curso
+      >
         <Button variant="outline" size="sm" asChild>
           <Link href="/dashboard/escuela-altipal/catalogo-cursos">
             <ArrowLeftIcon className="mr-2 h-4 w-4" /> Volver al Catálogo
@@ -275,7 +278,7 @@ const CourseDetailPage = () => {
       </PageSubheader>
       <main className="container mx-auto p-4 md:p-8">
         <header className="mb-8 md:mb-12">
-          {/* El título principal del curso ahora está en el PageSubheader, el resto del header original se mantiene */}
+          {/* El título y la descripción corta ahora están en el PageSubheader */}
           <div className="relative w-full h-60 md:h-96 rounded-lg overflow-hidden shadow-lg mb-6">
           <Image
             src={course.imageUrl}

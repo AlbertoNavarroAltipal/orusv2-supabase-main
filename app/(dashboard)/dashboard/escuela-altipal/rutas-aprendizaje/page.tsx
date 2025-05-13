@@ -34,12 +34,12 @@ const rutasAprendizaje = [
 const RutasAprendizajePage = () => {
   return (
     <React.Fragment>
-      <PageSubheader title="Rutas de Aprendizaje" />
+      <PageSubheader
+        title="Rutas de Aprendizaje"
+        description="Explora nuestras rutas de aprendizaje diseñadas para ayudarte a alcanzar tus metas profesionales."
+      />
       <main className="container mx-auto p-4">
-        <p className="text-muted-foreground mb-8">
-          Explora nuestras rutas de aprendizaje diseñadas para ayudarte a alcanzar tus metas profesionales.
-        </p>
-        {/* El h1 se movió al PageSubheader */}
+        {/* La descripción <p> se movió al PageSubheader */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {rutasAprendizaje.map((ruta) => (
           <Card key={ruta.id} className="flex flex-col">

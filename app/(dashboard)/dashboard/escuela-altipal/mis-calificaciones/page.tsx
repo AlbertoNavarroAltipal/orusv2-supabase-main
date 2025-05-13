@@ -139,37 +139,38 @@ const MisCalificacionesPage = () => {
   if (!profile) {
     return (
       <React.Fragment>
-        <PageSubheader title="Mis Calificaciones" />
-        <main className="container mx-auto px-4 py-8 text-center">
-          <p className="text-gray-600 dark:text-gray-300">
-            Por favor, inicia sesión para ver tus calificaciones.
-          </p>
-        </main>
-      </React.Fragment>
-    );
-  }
-
-  if (grades.length === 0) {
-    return (
-      <React.Fragment>
-        <PageSubheader title="Mis Calificaciones" />
-        <main className="container mx-auto px-4 py-8 text-center">
-          <p className="text-gray-600 dark:text-gray-300">
-            Aún no tienes calificaciones registradas.
-          </p>
-          {/* Podríamos añadir un CTA para explorar cursos */}
-        </main>
-      </React.Fragment>
-    );
-  }
-
-  // Ajuste para el return principal
-  if (authLoading || isLoadingGrades) { // Mover el return del loading aquí para que PageSubheader no dependa de 'profile' o 'grades'
-    return (
-      <React.Fragment>
-        <PageSubheader title="Mis Calificaciones" />
-        <main className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <PageSubheader
+            title="Mis Calificaciones"
+            description="Por favor, inicia sesión para ver tus calificaciones."
+          />
+          {/* El contenido del main se elimina ya que la descripción cubre el mensaje */}
+        </React.Fragment>
+      );
+    }
+  
+    if (grades.length === 0) {
+      return (
+        <React.Fragment>
+          <PageSubheader
+            title="Mis Calificaciones"
+            description="Aún no tienes calificaciones registradas."
+          />
+          {/* El contenido del main se elimina ya que la descripción cubre el mensaje */}
+          {/* Podríamos añadir un CTA para explorar cursos aquí si fuera necesario */}
+        </React.Fragment>
+      );
+    }
+  
+    // Ajuste para el return principal
+    if (authLoading || isLoadingGrades) { // Mover el return del loading aquí para que PageSubheader no dependa de 'profile' o 'grades'
+      return (
+        <React.Fragment>
+          <PageSubheader
+            title="Mis Calificaciones"
+            description="Cargando tus calificaciones..." // Descripción para el estado de carga
+          />
+          <main className="container mx-auto px-4 py-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, index) => (
               <Card
                 key={index}
@@ -194,12 +195,13 @@ const MisCalificacionesPage = () => {
   
   return (
     <React.Fragment>
-      <PageSubheader title="Mis Calificaciones" />
+      <PageSubheader
+        title="Mis Calificaciones"
+        description="Aquí puedes ver el detalle de tu desempeño en cada curso."
+      />
       <main className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
         <div className="container mx-auto px-4">
-          <p className="mt-2 text-lg text-gray-600 dark:text-gray-400 text-center mb-10">
-            Aquí puedes ver el detalle de tu desempeño en cada curso.
-          </p>
+          {/* La descripción <p> se movió al PageSubheader */}
           {/* Sección de Resumen General - Estilo mejorado */}
           <Card className="mb-10 bg-white dark:bg-gray-800 shadow-xl rounded-xl p-6 md:p-8">
           <CardHeader className="p-0 mb-4">

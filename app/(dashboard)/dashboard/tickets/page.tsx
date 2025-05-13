@@ -225,7 +225,10 @@ const TicketsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <PageSubheader title="Gestión de Tickets Altipal">
+      <PageSubheader
+        title="Gestión de Tickets Altipal"
+        description="Visualiza y gestiona todos los tickets de soporte."
+      >
         <div className="relative w-full max-w-md">
           <Input type="search" placeholder="Buscar Tickets por ID, asunto..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pr-10 h-10 border-gray-300 focus:border-primary-500 focus:ring-primary-500" />
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />

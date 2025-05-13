@@ -21,7 +21,10 @@ const sampleTickets = [
 export default function TicketsAgentesPage() {
   return (
     <React.Fragment>
-      <PageSubheader title="Gestión de Tickets de Agentes">
+      <PageSubheader
+        title="Gestión de Tickets de Agentes"
+        description="Administra y asigna tickets a los agentes de soporte."
+      >
         <Button>Crear Nuevo Ticket</Button>
       </PageSubheader>
       <main className="container mx-auto p-4 md:p-6 lg:p-8 space-y-6">

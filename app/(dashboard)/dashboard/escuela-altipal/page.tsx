@@ -83,10 +83,19 @@ const EscuelaAltipalPage = () => {
 
   return (
     <React.Fragment>
-      <PageSubheader title="Escuela Altipal" />
+      <PageSubheader
+        title="Escuela Altipal"
+        description="Bienvenido al portal de e-learning de Altipal. Aquí encontrarás todo lo necesario para tu desarrollo profesional."
+      />
       <main className="container mx-auto p-4">
-        {/* <h1 className="text-3xl font-bold mb-6 text-center">Escuela Altipal</h1> Ya no es necesario aquí */}
-
+        {/* El título y la descripción principal se movieron al PageSubheader */}
+        {/* El párrafo de bienvenida específico de esta página se puede mantener o eliminar si la descripción del subheader es suficiente. */}
+        {/*
+        <p className="text-center text-gray-600 mb-8">
+          Bienvenido al portal de e-learning de Altipal. Aquí encontrarás todo lo
+          necesario para tu desarrollo profesional.
+        </p>
+        */}
         {isLoading && (
         <div className="mb-8 grid grid-cols-1 md:grid-cols-3">
           <div className="md:col-span-1">
@@ -114,10 +123,7 @@ const EscuelaAltipalPage = () => {
         </p>
       )}
 
-      <p className="text-center text-gray-600 mb-8">
-        Bienvenido al portal de e-learning de Altipal. Aquí encontrarás todo lo
-        necesario para tu desarrollo profesional.
-      </p>
+      {/* Se elimina el párrafo de bienvenida duplicado, ya que está en la descripción del PageSubheader */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {eLearningItems.map((item) => (
           <Link href={item.href} key={item.title} passHref>

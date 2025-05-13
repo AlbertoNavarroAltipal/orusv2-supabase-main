@@ -74,13 +74,12 @@ const CertificadosPage = () => {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Montserrat:wght@400;500;700&family=Satisfy&display=swap" rel="stylesheet" />
       </Head>
-      <PageSubheader title="Mis Certificados" />
+      <PageSubheader
+        title="Mis Certificados"
+        description="Aquí puedes ver y descargar los certificados de los cursos y rutas de aprendizaje que has completado."
+      />
       <main className="container mx-auto p-4">
-        <p className="text-muted-foreground mb-8">
-          Aquí puedes ver y descargar los certificados de los cursos y rutas de aprendizaje que has completado.
-        </p>
-        {/* El h1 y la descripción se movieron o se pueden ajustar/eliminar */}
-
+        {/* La descripción <p> se movió al PageSubheader */}
         {certificadosObtenidos.length === 0 ? (
           <div className="text-center py-10">
             <h2 className="text-xl font-semibold mb-2">Aún no tienes certificados.</h2>

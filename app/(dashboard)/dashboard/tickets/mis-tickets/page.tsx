@@ -63,7 +63,10 @@ const sampleTickets = [
 const MisTicketsPage = () => {
   return (
     <>
-      <PageSubheader title="Mis Tickets">
+      <PageSubheader
+        title="Mis Tickets"
+        description="Visualiza y gestiona los tickets que has creado."
+      >
         <div className="relative w-full md:w-1/3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <Input
@@ -90,8 +93,6 @@ const MisTicketsPage = () => {
       </PageSubheader>
       <main className="container mx-auto p-4 md:p-6 lg:p-8">
         <div className="bg-white shadow-md rounded-lg p-6">
-          {/* La descripción "Visualiza y gestiona los tickets que has creado." se puede mover aquí si es necesario, o eliminar si el título es suficiente. */}
-          {/* <p className="text-gray-600 mb-6">Visualiza y gestiona los tickets que has creado.</p> */}
           <div className="overflow-x-auto">
           <Table>
             <TableHeader>

@@ -72,7 +72,10 @@ const RutaDetailPage: React.FC<RutaDetailPageProps> = ({ params }) => {
 
   return (
     <React.Fragment>
-      <PageSubheader title={ruta.titulo || "Detalle de Ruta de Aprendizaje"}>
+      <PageSubheader
+        title={ruta.titulo || "Detalle de Ruta de Aprendizaje"}
+        description={ruta.descripcion}
+      >
         <Link href="/dashboard/escuela-altipal/rutas-aprendizaje">
           <Button variant="outline">&larr; Volver a todas las Rutas</Button>
         </Link>

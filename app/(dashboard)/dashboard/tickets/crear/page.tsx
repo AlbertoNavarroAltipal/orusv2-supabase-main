@@ -3,13 +3,16 @@ import PageSubheader from '@/components/dashboard/page-subheader'; // Importar e
 
 const CrearTicketPage = () => {
   return (
-    <>
-      <PageSubheader title="Crear Nuevo Ticket" />
+    <React.Fragment>
+      <PageSubheader
+        title="Crear Nuevo Ticket"
+        description="Completa el formulario para registrar un nuevo ticket de soporte."
+      />
       <main className="container mx-auto p-4">
-        <p>Formulario para crear un nuevo ticket.</p>
+        {/* La descripción anterior <p> se movió y mejoró en PageSubheader */}
         {/* Aquí se agregará el formulario y más contenido */}
       </main>
-    </>
+    </React.Fragment>
   );
 };
 
