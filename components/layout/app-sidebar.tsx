@@ -37,15 +37,39 @@ export function AppSidebar() {
 
   if (!appSidebarOpen) return null;
 
+  const getModuleTitle = (moduleName: string): string => {
+    switch (moduleName) {
+      case "dashboard":
+        return "Inicio";
+      case "escuela-altipal":
+        return "Escuela Altipal";
+      case "tickets":
+        return "Tickets";
+      case "users":
+        return "Gestión de Usuarios"; // Ejemplo de título más descriptivo
+      case "roles":
+        return "Gestión de Roles"; // Ejemplo de título más descriptivo
+      case "iam": // Suponiendo que 'iam' puede ser un currentModule
+        return "IAM";
+      default:
+        // Capitaliza la primera letra y reemplaza guiones por espacios para un fallback genérico
+        return moduleName
+          .replace(/-/g, " ")
+          .replace(/\b\w/g, (char) => char.toUpperCase());
+    }
+  };
+
+  const sidebarTitle = getModuleTitle(currentModule);
+
   return (
-    <div className="bg-amber-50 w-64 border-r border-gray-200 flex flex-col">
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <h2 className="font-semibold text-gray-800">Menú dedicado de la app</h2>
+    <div className="bg-white w-64 border-r border-slate-200 flex flex-col">
+      <div className="flex items-center justify-between p-4 border-b border-slate-200">
+        <h2 className="font-semibold text-slate-900 text-lg">{sidebarTitle}</h2>
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleAppSidebar}
-          className="text-gray-500 hover:bg-amber-100"
+          className="text-slate-500 hover:bg-slate-100"
         >
           <ChevronLeft className="h-5 w-5" />
           <span className="sr-only">Cerrar menú</span>
@@ -53,7 +77,8 @@ export function AppSidebar() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        <p className="text-sm text-gray-600 mb-4">
+        {/* El párrafo descriptivo se podría eliminar o comentar si se busca una réplica exacta del diseño de la imagen */}
+        <p className="text-sm text-slate-500 mb-4">
           En esta sección se mostrará solo el menú del módulo o app que tengo
           abierto en ese momento
         </p>
@@ -152,6 +177,9 @@ function TicketsMenu({ pathname }: { pathname: string }) {
       <NavLink href="/dashboard/tickets/agentes" pathname={pathname}>
         Agentes
       </NavLink>
+      <NavLink href="/dashboard/tickets/analytics" pathname={pathname}>
+        Analytics
+      </NavLink>
 
       {/* Agrega más enlaces aquí si es necesario */}
     </nav>
@@ -210,10 +238,10 @@ function NavLink({ href, pathname, children }: NavLinkProps) {
     <Link
       href={href}
       className={cn(
-        "flex items-center px-4 py-2.5 text-sm rounded-md transition-colors duration-150 ease-in-out", // Padding aumentado y transición
+        "flex items-center px-4 py-2 text-sm transition-colors duration-150 ease-in-out", // py reducido, rounded-md eliminado
         isActive
-          ? "bg-amber-300 text-amber-900 font-semibold" // Estado activo más prominente
-          : "text-gray-700 hover:bg-amber-200 hover:text-amber-800" // Hover mejorado
+          ? "bg-[#004F9F] text-white font-semibold" // Estado activo: fondo azul personalizado, texto blanco
+          : "text-slate-700 hover:bg-[#004F9F] hover:text-white" // Estado normal y hover con azul personalizado y texto blanco
       )}
     >
       {children}

@@ -42,6 +42,7 @@
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "^2.49.4",
     "@tanstack/react-table": "latest",
+    "@tremor/react": "^3.18.7",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
