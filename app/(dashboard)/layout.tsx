@@ -50,7 +50,9 @@ export default function DashboardLayout({
           <AppSidebar />
 
           {/* Contenido principal (azul) */}
-          <main className="flex-1 overflow-y-auto bg-blue-50">{children}</main>
+          <main className="flex-1 overflow-y-auto bg-blue-50 transition-all duration-300 ease-in-out">
+            {children}
+          </main>
 
           {/* Panel de información (verde) */}
           <InfoSidebar />

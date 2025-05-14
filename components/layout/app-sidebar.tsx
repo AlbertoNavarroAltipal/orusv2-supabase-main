@@ -214,60 +214,95 @@ export function AppSidebar() {
     (menu) => menu.id === currentModuleId
   );
 
-  if (!appSidebarOpen) return null;
-
   if (!activeMenuConfig) {
-    console.warn(
-      `[AppSidebar] No se encontró configuración de menú para el módulo: ${currentModuleId}. Pathname: ${pathname}`
-    );
-    return null;
+    // Incluso si no hay configuración de menú, podríamos querer mostrar un sidebar vacío o un mensaje.
+    // Por ahora, si no hay config Y el sidebar está cerrado, no mostramos nada.
+    // Si está abierto pero sin config, se podría mostrar un estado vacío/error dentro del sidebar.
+    if (!appSidebarOpen) return null;
+    // Considerar renderizar un estado de error o vacío si appSidebarOpen es true pero no hay activeMenuConfig
+    // console.warn(
+    //   `[AppSidebar] No se encontró configuración de menú para el módulo: ${currentModuleId}. Pathname: ${pathname}`
+    // );
+    // return null; // O un componente de error/vacío
   }
 
-  return (
-    <div className="bg-white dark:bg-slate-800 w-64 border-r border-slate-200 dark:border-slate-700 flex flex-col h-full">
-      <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
-        <h2 className="font-semibold text-slate-900 dark:text-slate-50 text-lg">
-          {activeMenuConfig.title}
-        </h2>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleAppSidebar}
-          className="text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
-          aria-label="Cerrar menú lateral"
-        >
-          <ChevronLeft className="h-5 w-5" />
-          <span className="sr-only">Cerrar menú</span>
-        </Button>
-      </div>
+  // Si activeMenuConfig es null y appSidebarOpen es true, se renderizará un sidebar potencialmente vacío o con error.
+  // Esto es mejor que retornar null abruptamente si queremos animar la salida.
 
-      <div className="flex-1 overflow-y-auto p-4">
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-          Navegación para {activeMenuConfig.title}.
-        </p>
-        <nav className="space-y-1">
-          {activeMenuConfig.items.map((item) => {
-            const menuItemElement = (
-              <NavLinkItem
-                key={item.href || item.label}
-                item={item}
-                pathname={pathname}
-              />
-            );
-            if (item.permission) {
-              return (
-                <PermissionGuard
-                  key={`${item.href || item.label}-guard`}
-                  permission={item.permission}
-                >
-                  {menuItemElement}
-                </PermissionGuard>
-              );
-            }
-            return menuItemElement;
-          })}
-        </nav>
-      </div>
+  return (
+    <div
+      className={cn(
+        "bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col h-full",
+        "transition-all duration-300 ease-in-out", // Clases para la animación de ancho
+        appSidebarOpen ? "w-64" : "w-0 overflow-hidden" // Controla el ancho y oculta contenido al cerrar
+      )}
+    >
+      {/* El contenido solo se muestra si está abierto para evitar problemas de layout con w-0 */}
+      {appSidebarOpen && activeMenuConfig ? (
+        // Solo renderizar contenido si hay configuración
+        <>
+          <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+            <h2 className="font-semibold text-slate-900 dark:text-slate-50 text-lg">
+              {activeMenuConfig.title}
+            </h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleAppSidebar}
+              className="text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
+              aria-label="Cerrar menú lateral"
+            >
+              <ChevronLeft className="h-5 w-5" />
+              <span className="sr-only">Cerrar menú</span>
+            </Button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              Navegación para {activeMenuConfig.title}.
+            </p>
+            <nav className="space-y-1">
+              {activeMenuConfig.items.map((item) => {
+                const menuItemElement = (
+                  <NavLinkItem
+                    key={item.href || item.label}
+                    item={item}
+                    pathname={pathname}
+                  />
+                );
+                if (item.permission) {
+                  return (
+                    <PermissionGuard
+                      key={`${item.href || item.label}-guard`}
+                      permission={item.permission}
+                    >
+                      {menuItemElement}
+                    </PermissionGuard>
+                  );
+                }
+                return menuItemElement;
+              })}
+            </nav>
+          </div>
+        </>
+      ) : (
+        // Si no hay activeMenuConfig pero el sidebar está abierto,
+        // mostramos al menos el botón de cierre para mantener la consistencia de la UI y permitir cerrar.
+        // Esto también asegura que el div principal se renderice para la animación.
+        <div className="flex items-center justify-end p-4 border-b border-slate-200 dark:border-slate-700">
+          {/* Solo el botón de cierre si no hay contenido */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleAppSidebar}
+            className="text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
+            aria-label="Cerrar menú lateral"
+          >
+            <ChevronLeft className="h-5 w-5" />
+            <span className="sr-only">Cerrar menú</span>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
