@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAppStore } from "@/lib/stores";
 import { useAuth } from "@/lib/auth/auth-provider";
-import { GlobalMenuDrawer } from "./global-menu-drawer";
+import { AppGeneralMenu } from "./app-general-menu";
 import { LogoutConfirmationDialog } from "./logout-confirmation-dialog";
 import { NotificationsDropdown } from "./notifications-dropdown";
 import { ChatDropdown } from "./chat-dropdown";
@@ -258,7 +258,7 @@ export function MainHeader() {
       {/* Espacio para compensar el header fijo */}
       <div className={isScrolled ? "h-14" : "h-16"}></div>
 
-      <GlobalMenuDrawer
+      <AppGeneralMenu
         isOpen={isGlobalMenuOpen}
         onClose={() => setIsGlobalMenuOpen(false)}
       />

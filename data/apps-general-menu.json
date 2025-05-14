@@ -1,0 +1,261 @@
+[
+  {
+    "id": "recientes",
+    "title": "Visitados recientemente",
+    "apps": [
+      {
+        "name": "IAM",
+        "description": "Administrar el acceso a los recursos de AWS",
+        "icon": "Shield",
+        "href": "/dashboard/iam",
+        "starred": true
+      },
+      {
+        "name": "Cognito",
+        "description": "Administración de identidades de consumidores y credenciales de AWS para identidades federadas",
+        "icon": "Users",
+        "href": "/dashboard/cognito",
+        "starred": false
+      },
+      {
+        "name": "API Gateway",
+        "description": "Cree, implemente y administre API",
+        "icon": "Network",
+        "href": "/dashboard/api-gateway",
+        "starred": false
+      }
+    ]
+  },
+  {
+    "id": "favoritos",
+    "title": "Favoritos",
+    "apps": [
+      {
+        "name": "DynamoDB",
+        "description": "Base de datos NoSQL administrada",
+        "icon": "Database",
+        "href": "/dashboard/dynamodb",
+        "starred": true
+      },
+      {
+        "name": "Lambda",
+        "description": "Execute código sin tener que pensar en los servidores",
+        "icon": "Code",
+        "href": "/dashboard/lambda",
+        "starred": true
+      },
+      {
+        "name": "Aurora and RDS",
+        "description": "Servicio de bases de datos relacionales administrado",
+        "icon": "Database",
+        "href": "/dashboard/aurora-rds",
+        "starred": true
+      }
+    ]
+  },
+  {
+    "id": "externas",
+    "title": "Aplicaciones externas",
+    "apps": [
+      {
+        "name": "AWS AppSync",
+        "description": "Sincronización de datos en tiempo real con GraphQL para aplicaciones móviles y web, online o sin conexión",
+        "icon": "RefreshCw",
+        "href": "/dashboard/appsync",
+        "starred": false
+      },
+      {
+        "name": "Amazon S3",
+        "description": "Almacenamiento de objetos escalable",
+        "icon": "HardDrive",
+        "href": "/dashboard/s3",
+        "starred": false
+      },
+      {
+        "name": "Amazon EC2",
+        "description": "Servidores virtuales en la nube",
+        "icon": "Server",
+        "href": "/dashboard/ec2",
+        "starred": false
+      }
+    ]
+  },
+  {
+    "id": "orus",
+    "title": "Aplicaciones de ORUS",
+    "apps": [
+      {
+        "name": "Escuela Altipal",
+        "description": "Plataforma de aprendizaje corporativo",
+        "icon": "GraduationCap",
+        "href": "/dashboard/escuela-altipal",
+        "starred": false
+      },
+      {
+        "name": "Tickets",
+        "description": "Sistema de gestión de tickets de soporte",
+        "icon": "Ticket",
+        "href": "/dashboard/tickets",
+        "starred": false
+      },
+      {
+        "name": "Gestión de Usuarios",
+        "description": "Administración de usuarios del sistema",
+        "icon": "Users",
+        "href": "/dashboard/users",
+        "starred": false
+      }
+    ]
+  },
+  {
+    "id": "categorias",
+    "title": "Categorías",
+    "categories": [
+      {
+        "name": "Administración financiera en la nube",
+        "apps": [
+          {
+            "name": "Administración de facturación y costos",
+            "description": "Vea y pague facturas, analice y controle sus gastos y optimice sus costos",
+            "icon": "DollarSign",
+            "href": "/dashboard/billing",
+            "starred": false
+          },
+          {
+            "name": "Presupuestos",
+            "description": "Establezca presupuestos personalizados y reciba alertas",
+            "icon": "PieChart",
+            "href": "/dashboard/budgets",
+            "starred": false
+          }
+        ]
+      },
+      {
+        "name": "Administración y gobierno",
+        "apps": [
+          {
+            "name": "Control Tower",
+            "description": "Configure y gobierne un entorno AWS seguro y conforme",
+            "icon": "Building",
+            "href": "/dashboard/control-tower",
+            "starred": false
+          },
+          {
+            "name": "Organizations",
+            "description": "Administración centralizada de cuentas",
+            "icon": "Layers",
+            "href": "/dashboard/organizations",
+            "starred": false
+          }
+        ]
+      },
+      {
+        "name": "Almacenamiento",
+        "apps": [
+          {
+            "name": "S3",
+            "description": "Almacenamiento de objetos escalable",
+            "icon": "HardDrive",
+            "href": "/dashboard/s3",
+            "starred": false
+          },
+          {
+            "name": "EBS",
+            "description": "Volúmenes de almacenamiento en bloque",
+            "icon": "Disc",
+            "href": "/dashboard/ebs",
+            "starred": false
+          }
+        ]
+      },
+      {
+        "name": "Análisis",
+        "apps": [
+          {
+            "name": "Athena",
+            "description": "Consulte datos en S3 utilizando SQL",
+            "icon": "Search",
+            "href": "/dashboard/athena",
+            "starred": false
+          },
+          {
+            "name": "QuickSight",
+            "description": "Servicio de inteligencia empresarial",
+            "icon": "BarChart",
+            "href": "/dashboard/quicksight",
+            "starred": false
+          }
+        ]
+      },
+      {
+        "name": "Aplicaciones empresariales",
+        "apps": [
+          {
+            "name": "WorkMail",
+            "description": "Correo electrónico y calendario empresarial seguro",
+            "icon": "Mail",
+            "href": "/dashboard/workmail",
+            "starred": false
+          },
+          {
+            "name": "Chime",
+            "description": "Reuniones, videollamadas y chat",
+            "icon": "Video",
+            "href": "/dashboard/chime",
+            "starred": false
+          }
+        ]
+      },
+      {
+        "name": "Base de datos",
+        "apps": [
+          {
+            "name": "DynamoDB",
+            "description": "Base de datos NoSQL administrada",
+            "icon": "Database",
+            "href": "/dashboard/dynamodb",
+            "starred": false
+          },
+          {
+            "name": "Aurora and RDS",
+            "description": "Servicio de bases de datos relacionales administrado",
+            "icon": "Database",
+            "href": "/dashboard/aurora-rds",
+            "starred": false
+          }
+        ]
+      },
+      {
+        "name": "Cadena de bloques",
+        "apps": [
+          {
+            "name": "Managed Blockchain",
+            "description": "Cree y administre redes de blockchain",
+            "icon": "Link",
+            "href": "/dashboard/blockchain",
+            "starred": false
+          }
+        ]
+      },
+      {
+        "name": "Contenedores",
+        "apps": [
+          {
+            "name": "ECS",
+            "description": "Servicio de contenedores elástico",
+            "icon": "Package",
+            "href": "/dashboard/ecs",
+            "starred": false
+          },
+          {
+            "name": "EKS",
+            "description": "Kubernetes administrado",
+            "icon": "Grid",
+            "href": "/dashboard/eks",
+            "starred": false
+          }
+        ]
+      }
+    ]
+  }
+]

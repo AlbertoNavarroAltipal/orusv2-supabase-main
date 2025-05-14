@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, Info, Sparkles } from "lucide-react"
+import { Menu, Info, Sparkles, Grid } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAppStore } from "@/lib/stores"
 import { cn } from "@/lib/utils";
+import { AppMenuButton } from "./app-menu-button"
 
 export function AppHeader() {
   const pathname = usePathname()
@@ -52,6 +53,9 @@ export function AppHeader() {
       </div>
 
       <div className="flex items-center space-x-2">
+        {/* Botón del menú general de aplicaciones */}
+        <AppMenuButton />
+
         <Button
           variant="ghost"
           size="icon"
