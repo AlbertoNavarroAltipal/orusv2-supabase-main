@@ -135,12 +135,12 @@ function NavLinkItem({ item, pathname, isSubItem = false }: NavLinkItemProps) {
           <button
             type="button"
             className={cn(
-              "flex items-center justify-between w-full px-3 py-2 text-sm font-medium transition-colors duration-150 ease-in-out rounded-md",
+              "flex items-center justify-between w-full px-3 py-2 text-sm font-medium transition-all duration-200 ease-in-out rounded-md",
               isSubItem ? "pl-7" : "pl-3",
               isActive
-                ? "bg-sky-100 text-sky-700 dark:bg-sky-700 dark:text-sky-100 font-semibold"
+                ? "bg-sky-100 dark:bg-sky-700/50 text-sky-700 dark:text-sky-100 font-semibold border-l-4 border-sky-600 dark:border-sky-400"
                 : "text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-50",
-              item.href === "#" && isActive && "bg-sky-100 text-sky-700 dark:bg-sky-700 dark:text-sky-100 font-semibold"
+              item.href === "#" && isActive && "bg-sky-100 dark:bg-sky-700/50 text-sky-700 dark:text-sky-100 font-semibold border-l-4 border-sky-600 dark:border-sky-400"
             )}
             aria-expanded={isOpen}
           >
@@ -169,10 +169,10 @@ function NavLinkItem({ item, pathname, isSubItem = false }: NavLinkItemProps) {
     <Link
       href={item.href}
       className={cn(
-        "flex items-center justify-between w-full px-3 py-2 text-sm font-medium transition-colors duration-150 ease-in-out rounded-md",
+        "flex items-center justify-between w-full px-3 py-2 text-sm font-medium transition-all duration-200 ease-in-out rounded-md",
         isSubItem ? "pl-7" : "pl-3",
         isActive
-          ? "bg-[#004F9F] text-white font-semibold"
+          ? "bg-sky-100 dark:bg-sky-700/50 text-sky-700 dark:text-sky-100 font-semibold border-l-4 border-sky-600 dark:border-sky-400"
           : "text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-50"
       )}
     >
