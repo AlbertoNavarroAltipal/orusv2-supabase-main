@@ -1,0 +1,184 @@
+[
+  {
+    "id": "dashboard",
+    "title": "Inicio",
+    "items": [
+      { "label": "Muro de noticias", "href": "/dashboard", "iconName": "LayoutGrid" },
+      { 
+        "label": "Escuela Altipal", 
+        "href": "/dashboard/escuela-altipal", 
+        "iconName": "GraduationCap",
+        "subItems": [
+          { "label": "Resumen Escuela", "href": "/dashboard/escuela-altipal", "iconName": "Home" },
+          { "label": "Catálogo Cursos", "href": "/dashboard/escuela-altipal/catalogo-cursos", "iconName": "LayoutGrid" }
+        ]
+      },
+      { 
+        "label": "Tickets", 
+        "href": "/dashboard/tickets", 
+        "iconName": "Ticket",
+        "subItems": [
+          { "label": "Crear Ticket", "href": "/dashboard/tickets/crear", "iconName": "Ticket" },
+          { "label": "Mis Tickets", "href": "/dashboard/tickets", "iconName": "FileText"}
+        ]
+      },
+      { "label": "Gestión de Accesos", "href": "/dashboard/iam", "iconName": "ShieldCheck" }
+    ]
+  },
+  {
+    "id": "plantilla",
+    "title": "Plantilla",
+    "items": [
+      { "label": "Plantilla page", "href": "/dashboard/plantilla", "iconName": "FileText" },
+      { 
+        "label": "Documentación", 
+        "href": "#",
+        "iconName": "BookOpen",
+        "subItems": [
+          { "label": "Guía de Inicio", "href": "/dashboard/plantilla/docs/getting-started", "iconName": "FileText"},
+          { "label": "Componentes", "href": "/dashboard/plantilla/docs/components", "iconName": "LayoutGrid"}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "escuela-altipal",
+    "title": "Escuela Altipal",
+    "items": [
+      {
+        "label": "Crear nuevo curso",
+        "href": "/dashboard/escuela-altipal/crear-curso",
+        "permission": "create_courses_escuela_altipal",
+        "iconName": "BookOpen" 
+      },
+      { "label": "Resumen", "href": "/dashboard/escuela-altipal", "iconName": "Home" },
+      { "label": "Mis Cursos", "href": "/dashboard/escuela-altipal/mis-cursos", "iconName": "BookOpen" },
+      {
+        "label": "Mis Calificaciones",
+        "href": "/dashboard/escuela-altipal/mis-calificaciones",
+        "iconName": "GraduationCap"
+      },
+      {
+        "label": "Catálogo de Cursos",
+        "href": "/dashboard/escuela-altipal/catalogo-cursos",
+        "iconName": "LayoutGrid"
+      },
+      {
+        "label": "Rutas de Aprendizaje",
+        "href": "/dashboard/escuela-altipal/rutas-aprendizaje",
+        "iconName": "LineChart" 
+      },
+      {
+        "label": "Certificados",
+        "href": "/dashboard/escuela-altipal/certificados",
+        "iconName": "Award"
+      }
+    ]
+  },
+  {
+    "id": "tickets",
+    "title": "Tickets",
+    "items": [
+      {
+        "label": "Crear nuevo ticket",
+        "href": "/dashboard/tickets/crear",
+        "permission": "create_tickets",
+        "iconName": "Ticket"
+      },
+      { "label": "Ver mis tickets", "href": "/dashboard/tickets", "iconName": "FileText" },
+      {
+        "label": "Gestión de Tickets",
+        "href": "#",
+        "iconName": "Settings",
+        "permission": "manage_tickets_settings",
+        "subItems": [
+          {
+            "label": "Agentes",
+            "href": "/dashboard/tickets/agentes",
+            "permission": "view_agents_tickets",
+            "iconName": "Users"
+          },
+          {
+            "label": "Analytics",
+            "href": "/dashboard/tickets/analytics",
+            "permission": "view_analytics_tickets",
+            "iconName": "LineChart"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "users",
+    "title": "Gestión de Usuarios (App)",
+    "items": [
+      {
+        "label": "Listado de usuarios",
+        "href": "/dashboard/users",
+        "permission": "view_users",
+        "iconName": "Users"
+      },
+      {
+        "label": "Crear usuario",
+        "href": "/dashboard/users/create",
+        "permission": "create_users",
+        "iconName": "UserCog"
+      }
+    ]
+  },
+  {
+    "id": "roles",
+    "title": "Gestión de Roles (App)",
+    "items": [
+      {
+        "label": "Listado de roles",
+        "href": "/dashboard/roles",
+        "permission": "view_roles",
+        "iconName": "ShieldAlert"
+      },
+      {
+        "label": "Crear rol",
+        "href": "/dashboard/roles/create",
+        "permission": "create_roles",
+        "iconName": "Settings"
+      },
+      {
+        "label": "Permisos App",
+        "href": "/dashboard/permissions", 
+        "permission": "view_permissions",
+        "iconName": "ShieldCheck"
+      }
+    ]
+  },
+  {
+    "id": "iam",
+    "title": "Gestión de Accesos (IAM)",
+    "items": [
+      { "label": "Panel Principal IAM", "href": "/dashboard/iam", "iconName": "Home" },
+      {
+        "label": "Usuarios IAM",
+        "href": "/dashboard/iam/usuarios",
+        "permission": "view_users_iam",
+        "iconName": "Users"
+      },
+      {
+        "label": "Roles IAM",
+        "href": "/dashboard/iam/roles",
+        "permission": "view_roles_iam",
+        "iconName": "ShieldAlert"
+      },
+      {
+        "label": "Permisos IAM",
+        "href": "/dashboard/iam/permisos",
+        "permission": "view_permissions_iam",
+        "iconName": "ShieldCheck"
+      },
+      {
+        "label": "Auditoría IAM",
+        "href": "/dashboard/iam/auditoria",
+        "permission": "view_audit_iam",
+        "iconName": "History"
+      }
+    ]
+  }
+]
