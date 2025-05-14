@@ -3,20 +3,31 @@
     "id": "dashboard",
     "title": "Inicio",
     "items": [
-      { "label": "Muro de noticias", "href": "/dashboard", "iconName": "LayoutGrid" },
+      { 
+        "label": "Muro de noticias", 
+        "href": "/dashboard", 
+        "iconName": "LayoutGrid",
+        "badge": { "text": "Nuevo", "variant": "default" } 
+      },
       { 
         "label": "Escuela Altipal", 
         "href": "/dashboard/escuela-altipal", 
         "iconName": "GraduationCap",
         "subItems": [
           { "label": "Resumen Escuela", "href": "/dashboard/escuela-altipal", "iconName": "Home" },
-          { "label": "Catálogo Cursos", "href": "/dashboard/escuela-altipal/catalogo-cursos", "iconName": "LayoutGrid" }
+          { 
+            "label": "Catálogo Cursos", 
+            "href": "/dashboard/escuela-altipal/catalogo-cursos", 
+            "iconName": "LayoutGrid",
+            "badge": { "text": "25+", "variant": "secondary" }
+          }
         ]
       },
       { 
         "label": "Tickets", 
         "href": "/dashboard/tickets", 
         "iconName": "Ticket",
+        "badge": { "text": 3, "variant": "destructive", "iconName": "Ticket" },
         "subItems": [
           { "label": "Crear Ticket", "href": "/dashboard/tickets/crear", "iconName": "Ticket" },
           { "label": "Mis Tickets", "href": "/dashboard/tickets", "iconName": "FileText"}
@@ -52,7 +63,12 @@
         "iconName": "BookOpen" 
       },
       { "label": "Resumen", "href": "/dashboard/escuela-altipal", "iconName": "Home" },
-      { "label": "Mis Cursos", "href": "/dashboard/escuela-altipal/mis-cursos", "iconName": "BookOpen" },
+      { 
+        "label": "Mis Cursos", 
+        "href": "/dashboard/escuela-altipal/mis-cursos", 
+        "iconName": "BookOpen",
+        "badge": {"text": "En Progreso", "variant": "outline"}
+      },
       {
         "label": "Mis Calificaciones",
         "href": "/dashboard/escuela-altipal/mis-calificaciones",
@@ -159,7 +175,8 @@
         "label": "Usuarios IAM",
         "href": "/dashboard/iam/usuarios",
         "permission": "view_users_iam",
-        "iconName": "Users"
+        "iconName": "Users",
+        "badge": {"text": "5 Activos", "variant": "default"}
       },
       {
         "label": "Roles IAM",
