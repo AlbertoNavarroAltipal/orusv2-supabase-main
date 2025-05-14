@@ -64,7 +64,6 @@ import {
   ChevronsRight,
   ChevronLeft,
   ChevronRight,
-  PlusCircle, // Icono para "Crear"
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -77,13 +76,11 @@ import {
 } from "@/components/ui/select";
 
 import {
-  columns as plantillaColumns,
-  mockPlantillas,
-  Plantilla,
-} from "./columns"; // Importar de las columnas de plantilla
-import plantillaDataConfig from "./data-plantilla.json"; // Importar la configuración específica de la plantilla
+  columns as commentColumns,
+  CommentEntry, 
+} from "./columns";
+import commentDataConfig from "./data-plantilla.json"; 
 
-// Tipos para las preferencias de la tabla
 type PaginationPosition = "top" | "bottom" | "both";
 type TableDensity = "compact" | "normal" | "comfortable";
 
@@ -96,17 +93,21 @@ interface TablePreferences {
   columnSizing: ColumnSizingState;
 }
 
-const TABLE_PREFERENCES_COOKIE_KEY = "plantillaTablePreferences"; // Clave de cookie específica
-const ADVANCED_FILTERS_COOKIE_KEY = "plantillaAdvancedFilters"; // Clave de cookie específica
+const TABLE_PREFERENCES_COOKIE_KEY = "commentsTablePreferences"; 
+const ADVANCED_FILTERS_COOKIE_KEY = "commentsAdvancedFilters"; 
 
-const PlantillaPage = () => {
+const CommentsPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Usar mockPlantillas por ahora, idealmente esto vendría de una API
-  const [data, setData] = useState<Plantilla[]>(() => [...mockPlantillas]);
-  const [rowSelection, setRowSelection] = useState({});
+  const [data, setData] = useState<CommentEntry[]>([]);
+  const [originalData, setOriginalData] = useState<CommentEntry[]>([]); 
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [totalRowCount, setTotalRowCount] = useState(0); 
 
+  const [rowSelection, setRowSelection] = useState({});
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const [showAdvancedFilterBuilder, setShowAdvancedFilterBuilder] =
     useState(false);
@@ -115,7 +116,6 @@ const PlantillaPage = () => {
   >([]);
   const [showDeletePrefsAlert, setShowDeletePrefsAlert] = useState(false);
 
-  // Estados temporales para el modal de preferencias
   const [tempLineWrap, setTempLineWrap] = useState(false);
   const [tempTableDensity, setTempTableDensity] =
     useState<TableDensity>("normal");
@@ -136,20 +136,19 @@ const PlantillaPage = () => {
     setShowPreferencesModal(open);
   };
 
-  // Cargar columnas por defecto de data-plantilla.json
   const initialColumnVisibility = useMemo(() => {
     const visibility: VisibilityState = {};
-    plantillaDataConfig.tableHeaders.forEach((header) => {
+    commentDataConfig.tableHeaders.forEach((header: { accessorKey: string; header: string; }) => {
       visibility[header.accessorKey] =
-        plantillaDataConfig.defaultVisibleColumns.includes(header.accessorKey);
+        commentDataConfig.defaultVisibleColumns.includes(header.accessorKey);
     });
-    // Asegurarse de que 'select' y 'actions' no se oculten por error si no están en defaultVisibleColumns
-    // Aunque su visibilidad se controla de otra forma o no se incluye en la personalización.
-    // Por ahora, las dejamos como las gestiona la tabla por defecto.
     return visibility;
   }, []);
+  
+  const pageParam = searchParams.get(commentDataConfig.pagination.paramPage) ?? "1";
+  const perPageParam = searchParams.get(commentDataConfig.pagination.paramLimit) ?? "10";
 
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(parseInt(perPageParam, 10));
   const [paginationPosition, setPaginationPosition] =
     useState<PaginationPosition>("bottom");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -159,9 +158,8 @@ const PlantillaPage = () => {
   const [tableDensity, setTableDensity] = useState<TableDensity>("normal");
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
 
-  const columns = useMemo<ColumnDef<Plantilla>[]>(() => plantillaColumns, []);
+  const columns = useMemo<ColumnDef<CommentEntry>[]>(() => commentColumns, []);
 
-  const page = searchParams.get("page") ?? "1";
   const sortParam = searchParams.get("sort");
   const searchQuery = searchParams.get("q") ?? "";
 
@@ -169,10 +167,7 @@ const PlantillaPage = () => {
     searchQuery
       ? [
           {
-            id:
-              plantillaDataConfig.tableHeaders.find((h) =>
-                h.header.toLowerCase().includes("nombre")
-              )?.accessorKey || "name",
+            id: commentDataConfig.searchFieldAccessorKey || "name", 
             value: searchQuery,
           },
         ]
@@ -182,7 +177,11 @@ const PlantillaPage = () => {
   const [sorting, setSorting] = useState<SortingState>(() => {
     if (sortParam) {
       const [id, direction] = sortParam.split(".");
-      if (id && (direction === "asc" || direction === "desc")) {
+      // Validar que 'id' sea una columna existente antes de aplicarlo
+      const columnExists = commentDataConfig.tableHeaders.some(
+        (col: {accessorKey: string}) => col.accessorKey === id
+      );
+      if (columnExists && (direction === "asc" || direction === "desc")) {
         return [{ id, desc: direction === "desc" }];
       }
     }
@@ -191,10 +190,10 @@ const PlantillaPage = () => {
 
   const pagination = useMemo<PaginationState>(
     () => ({
-      pageIndex: parseInt(page) - 1,
+      pageIndex: parseInt(pageParam) - 1,
       pageSize: pageSize,
     }),
-    [page, pageSize]
+    [pageParam, pageSize]
   );
 
   const table = useReactTable({
@@ -213,18 +212,22 @@ const PlantillaPage = () => {
     onColumnVisibilityChange: setColumnVisibility,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
-    manualPagination: true, // Cambiar a false si los datos se filtran/pagan localmente y no por API
-    manualSorting: false, // Cambiar a true si la API maneja la ordenación
-    manualFiltering: false, // Cambiar a true si la API maneja el filtrado
+    manualPagination: commentDataConfig.pagination.enabled, 
+    manualSorting: false, 
+    manualFiltering: true, 
     onPaginationChange: (updater) => {
       const newState =
         typeof updater === "function" ? updater(pagination) : updater;
+      
+      const params = new URLSearchParams(searchParams.toString());
+      params.set(commentDataConfig.pagination.paramPage, (newState.pageIndex + 1).toString());
+      params.set(commentDataConfig.pagination.paramLimit, newState.pageSize.toString());
+      
+      // Solo actualiza pageSize si realmente cambió para evitar bucles
       if (newState.pageSize !== pageSize) {
         setPageSize(newState.pageSize);
       }
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("page", (newState.pageIndex + 1).toString());
-      params.set("per_page", newState.pageSize.toString());
+      
       router.push(`?${params.toString()}`, { scroll: false });
     },
     onSortingChange: setSorting,
@@ -233,9 +236,51 @@ const PlantillaPage = () => {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    rowCount: data.length, // Ajustar si la paginación es manual y el total viene de la API
+    rowCount: commentDataConfig.pagination.enabled ? totalRowCount : data.length, 
   });
 
+  const fetchDataFromApi = useCallback(async () => {
+      setIsLoading(true);
+      setApiError(null);
+      
+      const currentPage = table.getState().pagination.pageIndex + 1;
+      const currentLimit = table.getState().pagination.pageSize;
+      
+      let apiUrl = commentDataConfig.apiEndpoint;
+
+      if(commentDataConfig.pagination.enabled) {
+        const apiParams = new URLSearchParams();
+        apiParams.set(commentDataConfig.pagination.paramPage, currentPage.toString());
+        apiParams.set(commentDataConfig.pagination.paramLimit, currentLimit.toString());
+        apiUrl = `${commentDataConfig.apiEndpoint}?${apiParams.toString()}`;
+      }
+
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+          let errorData;
+          try { errorData = await response.json(); } catch (e) {}
+          const errorMessage = `Error ${response.status}: ${response.statusText}${errorData?.message ? ` - ${errorData.message}` : ''}`;
+          throw new Error(errorMessage);
+        }
+        const resultData: CommentEntry[] = await response.json();
+        const total = response.headers.get('x-total-count');
+        setTotalRowCount(total ? parseInt(total, 10) : resultData.length);
+        setOriginalData(resultData);
+        setData(resultData); 
+      } catch (err: any) {
+        setApiError(err.message || "Ocurrió un error al refrescar los datos.");
+        setShowErrorModal(true);
+        setOriginalData([]);
+        setData([]);
+        setTotalRowCount(0);
+      } finally {
+        setIsLoading(false);
+      }
+  }, [table, commentDataConfig.apiEndpoint, commentDataConfig.pagination.enabled, commentDataConfig.pagination.paramPage, commentDataConfig.pagination.paramLimit ]);
+
+
+  // Efecto para actualizar URL con filtros y ordenación (cliente)
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     if (sorting.length > 0) {
@@ -247,46 +292,50 @@ const PlantillaPage = () => {
       params.delete("sort");
     }
 
-    const searchFieldKey =
-      plantillaDataConfig.tableHeaders.find((h) =>
-        h.header.toLowerCase().includes("nombre")
-      )?.accessorKey || "name";
+    const searchFieldKey = commentDataConfig.searchFieldAccessorKey || "name";
     const currentSearchFilter = columnFilters.find(
       (f) => f.id === searchFieldKey
     );
-    if (currentSearchFilter) {
-      params.set("q", String(currentSearchFilter.value) ?? "");
+    if (currentSearchFilter && String(currentSearchFilter.value).trim() !== "") {
+      params.set("q", String(currentSearchFilter.value));
     } else {
       params.delete("q");
     }
-    if (params.get("per_page") !== pageSize.toString()) {
-      params.set("per_page", pageSize.toString());
+    
+    // Actualizar parámetros de paginación en la URL si han cambiado por el estado de la tabla
+    const tablePageIndex = table.getState().pagination.pageIndex + 1;
+    const tablePageSize = table.getState().pagination.pageSize;
+
+    if (params.get(commentDataConfig.pagination.paramPage) !== tablePageIndex.toString()) {
+        params.set(commentDataConfig.pagination.paramPage, tablePageIndex.toString());
+    }
+    if (params.get(commentDataConfig.pagination.paramLimit) !== tablePageSize.toString()) {
+        params.set(commentDataConfig.pagination.paramLimit, tablePageSize.toString());
     }
 
-    const currentQ = searchParams.get("q") ?? "";
-    const currentSort = searchParams.get("sort") ?? "";
-    const currentPerPage = searchParams.get("per_page") ?? "10";
 
-    const newQ = params.get("q") ?? "";
-    const newSort = params.get("sort") ?? "";
-    const newPerPage = params.get("per_page") ?? "10";
-
-    if (
-      newQ !== currentQ ||
-      newSort !== currentSort ||
-      newPerPage !== currentPerPage
+    const currentSortQuery = searchParams.get("sort") ?? "";
+    const currentQQuery = searchParams.get("q") ?? "";
+    const currentPageQuery = searchParams.get(commentDataConfig.pagination.paramPage) ?? "1";
+    const currentPerPageQuery = searchParams.get(commentDataConfig.pagination.paramLimit) ?? "10";
+    
+    if( params.get("sort") !== currentSortQuery || 
+        params.get("q") !== currentQQuery ||
+        params.get(commentDataConfig.pagination.paramPage) !== currentPageQuery ||
+        params.get(commentDataConfig.pagination.paramLimit) !== currentPerPageQuery
     ) {
-      router.push(`?${params.toString()}`, { scroll: false });
+        router.push(`?${params.toString()}`, { scroll: false });
     }
-  }, [
-    sorting,
-    columnFilters,
-    pageSize,
-    router,
-    searchParams,
-    plantillaDataConfig.tableHeaders,
-  ]);
 
+  }, [sorting, columnFilters, router, searchParams, commentDataConfig.searchFieldAccessorKey, table, commentDataConfig.pagination.paramPage, commentDataConfig.pagination.paramLimit]);
+
+
+  // Efecto para cargar datos de la API cuando cambian los parámetros de paginación o se monta
+  useEffect(() => {
+    fetchDataFromApi();
+  }, [fetchDataFromApi]); 
+
+  // Efecto para cargar filtros avanzados de cookies
   useEffect(() => {
     const savedFiltersString = Cookies.get(ADVANCED_FILTERS_COOKIE_KEY);
     if (savedFiltersString) {
@@ -296,9 +345,7 @@ const PlantillaPage = () => {
         ) as AdvancedFilterCondition[];
         setAdvancedFilters(parsedFilters);
         const searchFieldKey =
-          plantillaDataConfig.tableHeaders.find((h) =>
-            h.header.toLowerCase().includes("nombre")
-          )?.accessorKey || "name";
+          commentDataConfig.searchFieldAccessorKey || "name";
         const currentGlobalFilter = columnFilters.find(
           (f) => f.id === searchFieldKey
         );
@@ -310,12 +357,12 @@ const PlantillaPage = () => {
         Cookies.remove(ADVANCED_FILTERS_COOKIE_KEY);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const evaluateProfileCondition = useCallback(
-    (plantilla: Plantilla, condition: AdvancedFilterCondition): boolean => {
-      const rawFieldValue = plantilla[condition.field as keyof Plantilla];
+    (comment: CommentEntry, condition: AdvancedFilterCondition): boolean => {
+      const rawFieldValue = comment[condition.field as keyof CommentEntry];
 
       if (condition.operator === "isEmpty") {
         return (
@@ -356,11 +403,11 @@ const PlantillaPage = () => {
 
   const filterDataWithAdvancedFilters = useCallback(
     (
-      sourceData: Plantilla[],
+      sourceData: CommentEntry[],
       filters: AdvancedFilterCondition[]
-    ): Plantilla[] => {
+    ): CommentEntry[] => {
       if (!filters || filters.length === 0) return sourceData;
-      return sourceData.filter((plantilla) => {
+      return sourceData.filter((comment) => {
         if (!filters.length) return true;
         const orGroups: AdvancedFilterCondition[][] = [];
         let currentAndGroup: AdvancedFilterCondition[] = [];
@@ -379,7 +426,7 @@ const PlantillaPage = () => {
           if (andGroup.length === 0) continue;
           let andGroupResult = true;
           for (const condition of andGroup) {
-            if (!evaluateProfileCondition(plantilla, condition)) {
+            if (!evaluateProfileCondition(comment, condition)) {
               andGroupResult = false;
               break;
             }
@@ -392,16 +439,16 @@ const PlantillaPage = () => {
     [evaluateProfileCondition]
   );
 
+  // Efecto para aplicar filtros (global y avanzado) a los datos cargados
+  // Este efecto ahora opera sobre `originalData` (datos de la página actual si hay paginación server-side)
   useEffect(() => {
-    let dataToDisplay = [...mockPlantillas];
+    let dataToDisplay = [...originalData]; 
     const searchFieldKey =
-      plantillaDataConfig.tableHeaders.find((h) =>
-        h.header.toLowerCase().includes("nombre")
-      )?.accessorKey || "name";
+      commentDataConfig.searchFieldAccessorKey || "name";
 
     if (advancedFilters.length > 0) {
       dataToDisplay = filterDataWithAdvancedFilters(
-        mockPlantillas,
+        originalData,
         advancedFilters
       );
     } else {
@@ -414,28 +461,32 @@ const PlantillaPage = () => {
         globalSearchFilter.value.trim() !== ""
       ) {
         const searchTerm = globalSearchFilter.value.toLowerCase();
-        dataToDisplay = mockPlantillas.filter((plantilla) =>
-          String(plantilla[searchFieldKey as keyof Plantilla])
-            ?.toLowerCase()
-            .includes(searchTerm)
+        dataToDisplay = originalData.filter(
+          (comment: CommentEntry) => 
+            String(comment[searchFieldKey as keyof CommentEntry])
+              ?.toLowerCase()
+              .includes(searchTerm)
         );
       }
     }
-    setData(dataToDisplay);
+    setData(dataToDisplay); // setData ahora refleja los datos filtrados de la página actual
   }, [
     advancedFilters,
     columnFilters,
-    mockPlantillas,
+    originalData, // Depende de originalData que viene de la API
     filterDataWithAdvancedFilters,
-    plantillaDataConfig.tableHeaders,
+    commentDataConfig.searchFieldAccessorKey,
   ]);
 
+  // Efecto para cargar/guardar preferencias de tabla
   useEffect(() => {
     const savedPrefsString = Cookies.get(TABLE_PREFERENCES_COOKIE_KEY);
     if (savedPrefsString) {
       try {
         const savedPrefs = JSON.parse(savedPrefsString) as TablePreferences;
-        setPageSize(savedPrefs.pageSize ?? 10);
+        // No establecer pageSize directamente aquí si la paginación es del servidor,
+        // se maneja a través de la URL y el estado de la tabla.
+        // setPageSize(savedPrefs.pageSize ?? 10); 
         setPaginationPosition(savedPrefs.paginationPosition ?? "bottom");
         setColumnVisibility(
           savedPrefs.columnVisibility ?? initialColumnVisibility
@@ -456,12 +507,12 @@ const PlantillaPage = () => {
         Cookies.remove(TABLE_PREFERENCES_COOKIE_KEY);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     const preferencesToSave: TablePreferences = {
-      pageSize,
+      pageSize, // Guardar el pageSize actual
       paginationPosition,
       columnVisibility,
       lineWrap,
@@ -482,14 +533,12 @@ const PlantillaPage = () => {
     columnSizing,
   ]);
 
-  const totalPages = table.getPageCount();
+  const totalPagesCalculated = commentDataConfig.pagination.enabled ? Math.ceil(totalRowCount / pageSize) : table.getPageCount();
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     const searchFieldKey =
-      plantillaDataConfig.tableHeaders.find((h) =>
-        h.header.toLowerCase().includes("nombre")
-      )?.accessorKey || "name";
+      commentDataConfig.searchFieldAccessorKey || "name";
     table.getColumn(searchFieldKey)?.setFilterValue(value);
     if (value.trim() !== "") {
       if (advancedFilters.length > 0) {
@@ -497,7 +546,11 @@ const PlantillaPage = () => {
         Cookies.remove(ADVANCED_FILTERS_COOKIE_KEY);
       }
     }
-    table.setPageIndex(0);
+    // Si la paginación es del servidor, la búsqueda se aplicará al recargar datos.
+    // Si es del cliente, resetear a la primera página.
+    if (!commentDataConfig.pagination.enabled) {
+        table.setPageIndex(0);
+    }
   };
 
   const handlePageChange = (newPageOneBased: number) => {
@@ -510,77 +563,81 @@ const PlantillaPage = () => {
       expires: 7,
     });
     const searchFieldKey =
-      plantillaDataConfig.tableHeaders.find((h) =>
-        h.header.toLowerCase().includes("nombre")
-      )?.accessorKey || "name";
-    table.getColumn(searchFieldKey)?.setFilterValue(""); // Limpiar búsqueda global
+      commentDataConfig.searchFieldAccessorKey || "name";
+    table.getColumn(searchFieldKey)?.setFilterValue(""); 
     setShowAdvancedFilterBuilder(false);
-    table.setPageIndex(0);
+    if (!commentDataConfig.pagination.enabled) {
+        table.setPageIndex(0);
+    }
   };
 
   const handleClearAdvancedFiltersFromModal = () => {
     setAdvancedFilters([]);
     Cookies.remove(ADVANCED_FILTERS_COOKIE_KEY);
     setShowAdvancedFilterBuilder(false);
-    table.setPageIndex(0);
+     if (!commentDataConfig.pagination.enabled) {
+        table.setPageIndex(0);
+    }
   };
 
   const handleApplyPreferences = () => {
-    setPageSize(tempPageSize);
+    // Actualizar pageSize en la URL si la paginación es del servidor
+    if (commentDataConfig.pagination.enabled && tempPageSize !== pageSize) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set(commentDataConfig.pagination.paramLimit, tempPageSize.toString());
+        params.set(commentDataConfig.pagination.paramPage, "1"); // Reset to page 1 on page size change
+        router.push(`?${params.toString()}`, { scroll: false });
+    }
+    setPageSize(tempPageSize); // Actualiza el estado local, lo que disparará useEffect de carga si es necesario
     setPaginationPosition(tempPaginationPosition);
     setColumnVisibility(tempColumnVisibility);
     setLineWrap(tempLineWrap);
     setTableDensity(tempTableDensity);
-    // Nota: columnSizing se actualiza directamente por la tabla, pero si quisiéramos un "aplicar" explícito para él,
-    // necesitaríamos un tempColumnSizing y actualizarlo aquí.
     setShowPreferencesModal(false);
   };
 
   const handleResetPreferences = () => {
-    // Restablecer a valores por defecto (o los iniciales del componente)
     const defaultPageSize = 10;
     const defaultPaginationPosition: PaginationPosition = "bottom";
-    const defaultColumnVisibility = initialColumnVisibility; // Usar el recalculado
+    const defaultColumnVisibility = initialColumnVisibility; 
     const defaultLineWrap = false;
     const defaultTableDensity: TableDensity = "normal";
     const defaultColumnSizing = {};
 
-    // Aplicar directamente y también a los temporales para reflejar en el modal
+    if (commentDataConfig.pagination.enabled && defaultPageSize !== pageSize) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set(commentDataConfig.pagination.paramLimit, defaultPageSize.toString());
+        params.set(commentDataConfig.pagination.paramPage, "1");
+        router.push(`?${params.toString()}`, { scroll: false });
+    }
     setPageSize(defaultPageSize);
     setPaginationPosition(defaultPaginationPosition);
     setColumnVisibility(defaultColumnVisibility);
     setLineWrap(defaultLineWrap);
     setTableDensity(defaultTableDensity);
-    setColumnSizing(defaultColumnSizing); // Restablecer tamaño de columnas
+    setColumnSizing(defaultColumnSizing); 
 
     setTempPageSize(defaultPageSize);
     setTempPaginationPosition(defaultPaginationPosition);
     setTempColumnVisibility(defaultColumnVisibility);
     setTempLineWrap(defaultLineWrap);
     setTempTableDensity(defaultTableDensity);
-
-    Cookies.remove(TABLE_PREFERENCES_COOKIE_KEY); // Eliminar la cookie
-    setShowDeletePrefsAlert(false); // Cerrar el diálogo de alerta
-    // setShowPreferencesModal(false); // Opcionalmente cerrar el modal de preferencias también
+    
+    Cookies.remove(TABLE_PREFERENCES_COOKIE_KEY); 
+    setShowDeletePrefsAlert(false); 
   };
+  
 
   const renderPaginationControls = () => {
-    if (
-      totalPages <= 1 &&
-      paginationPosition !== "top" &&
-      paginationPosition !== "both"
-    )
-      return null;
+    const currentTotalPages = totalPagesCalculated;
+    if (currentTotalPages <= 1 && paginationPosition !== "top" && paginationPosition !== "both") return null;
 
     return (
-      <div
-        className={`flex items-center justify-between py-4 ${
-          lineWrap ? "flex-col gap-y-2 sm:flex-row" : ""
-        }`}
-      >
+      <div className={`flex items-center justify-between py-4 ${lineWrap ? "flex-col gap-y-2 sm:flex-row" : ""}`}>
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} de{" "}
           {table.getFilteredRowModel().rows.length} fila(s) seleccionadas.
+          {commentDataConfig.pagination.enabled && ` (Total: ${totalRowCount})`}
         </div>
         <div className="flex items-center space-x-1">
           <Button
@@ -607,40 +664,36 @@ const PlantillaPage = () => {
             <Input
               type="number"
               min="1"
-              max={totalPages > 0 ? totalPages : 1}
+              max={currentTotalPages > 0 ? currentTotalPages : 1}
               value={pagination.pageIndex + 1}
               onChange={(e) => {
                 const pageNum = e.target.value ? Number(e.target.value) : 0;
-                if (pageNum > 0 && pageNum <= totalPages) {
+                if (pageNum > 0 && pageNum <= currentTotalPages) {
                   handlePageChange(pageNum);
                 }
               }}
-              onBlur={(e) => {
-                // Para manejar el caso de que el input quede vacío
+              onBlur={(e) => { 
                 const pageNum = e.target.value ? Number(e.target.value) : 1;
                 if (pageNum <= 0) handlePageChange(1);
-                else if (pageNum > totalPages) handlePageChange(totalPages);
+                else if (pageNum > currentTotalPages) handlePageChange(currentTotalPages);
               }}
-              onKeyDown={(e) => {
-                // Permitir Enter para cambiar de página
-                if (e.key === "Enter") {
-                  const inputElement = e.target as HTMLInputElement;
-                  const pageNum = inputElement.value
-                    ? Number(inputElement.value)
-                    : 1;
-                  if (pageNum > 0 && pageNum <= totalPages) {
-                    handlePageChange(pageNum);
-                  } else if (pageNum <= 0) {
-                    handlePageChange(1);
-                  } else {
-                    handlePageChange(totalPages);
-                  }
-                  inputElement.blur(); // Quitar foco del input
+              onKeyDown={(e) => { 
+                if (e.key === 'Enter') {
+                    const inputElement = e.target as HTMLInputElement;
+                    const pageNum = inputElement.value ? Number(inputElement.value) : 1;
+                    if (pageNum > 0 && pageNum <= currentTotalPages) {
+                        handlePageChange(pageNum);
+                    } else if (pageNum <= 0) {
+                        handlePageChange(1);
+                    } else {
+                        handlePageChange(currentTotalPages);
+                    }
+                    inputElement.blur(); 
                 }
               }}
               className="h-8 w-12 px-1 text-center"
             />
-            <span>de {totalPages > 0 ? totalPages : 1}</span>
+            <span>de {currentTotalPages > 0 ? currentTotalPages : 1}</span>
           </div>
 
           <Button
@@ -655,7 +708,7 @@ const PlantillaPage = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.setPageIndex(totalPages - 1)}
+            onClick={() => table.setPageIndex(currentTotalPages - 1)}
             disabled={!table.getCanNextPage()}
             className="hidden lg:flex"
           >
@@ -663,26 +716,33 @@ const PlantillaPage = () => {
           </Button>
         </div>
         <div className="flex items-center space-x-2 ml-auto pl-4 hidden sm:flex">
-          <span className="text-sm text-muted-foreground">
-            Filas por página:
-          </span>
-          <Select
-            value={`${pageSize}`}
-            onValueChange={(value) => {
-              table.setPageSize(Number(value));
-            }}
-          >
-            <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue placeholder={pageSize} />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {[10, 20, 30, 40, 50].map((size) => (
-                <SelectItem key={size} value={`${size}`}>
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <span className="text-sm text-muted-foreground">Filas por página:</span>
+            <Select
+                value={`${pageSize}`}
+                onValueChange={(value) => {
+                    // Esto actualizará el estado local y la URL si es necesario,
+                    // lo que a su vez disparará fetchDataFromApi
+                    const newPageSize = Number(value);
+                    if (commentDataConfig.pagination.enabled) {
+                        const params = new URLSearchParams(searchParams.toString());
+                        params.set(commentDataConfig.pagination.paramLimit, newPageSize.toString());
+                        params.set(commentDataConfig.pagination.paramPage, "1"); // Reset to page 1
+                        router.push(`?${params.toString()}`, { scroll: false });
+                    }
+                    setPageSize(newPageSize); 
+                }}
+            >
+                <SelectTrigger className="h-8 w-[70px]">
+                    <SelectValue placeholder={pageSize} />
+                </SelectTrigger>
+                <SelectContent side="top">
+                    {[10, 20, 30, 40, 50].map((size) => (
+                        <SelectItem key={size} value={`${size}`}>
+                            {size}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         </div>
       </div>
     );
@@ -691,32 +751,21 @@ const PlantillaPage = () => {
   return (
     <>
       <PageSubheader
-        title={plantillaDataConfig.pageTitle}
-        description={plantillaDataConfig.pageDescription}
+        title={commentDataConfig.pageTitle}
+        description={commentDataConfig.pageDescription}
       >
         <div className="flex items-center gap-x-2 w-full md:w-auto">
           <div className="relative flex-grow md:flex-grow-0">
             <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder={plantillaDataConfig.searchPlaceholder}
-              value={
-                (table
-                  .getColumn(
-                    plantillaDataConfig.tableHeaders.find((h) =>
-                      h.header.toLowerCase().includes("nombre")
-                    )?.accessorKey || "name"
-                  )
-                  ?.getFilterValue() as string) ?? ""
-              }
+              placeholder={commentDataConfig.searchPlaceholder}
+              value={(table.getColumn(commentDataConfig.searchFieldAccessorKey || "name")?.getFilterValue() as string) ?? ""}
               onChange={handleSearchChange}
               className="pl-8 w-full md:w-[200px] lg:w-[300px]"
             />
           </div>
-          <Dialog
-            open={showAdvancedFilterBuilder}
-            onOpenChange={setShowAdvancedFilterBuilder}
-          >
+          <Dialog open={showAdvancedFilterBuilder} onOpenChange={setShowAdvancedFilterBuilder}>
             <DialogTrigger asChild>
               <Button variant="outline" className="relative">
                 <FilterIcon className="h-4 w-4 mr-2" />
@@ -735,25 +784,20 @@ const PlantillaPage = () => {
               <DialogHeader className="p-6 pb-0">
                 <DialogTitle>Constructor de Filtros Avanzados</DialogTitle>
                 <DialogDescription>
-                  Cree condiciones de filtro complejas para refinar los
-                  resultados de{" "}
-                  {plantillaDataConfig.entityNamePlural.toLowerCase()}.
+                  Cree condiciones de filtro complejas para refinar los resultados de {commentDataConfig.entityNamePlural.toLowerCase()}.
                 </DialogDescription>
               </DialogHeader>
               <AdvancedFilterBuilder
-                columns={plantillaColumns}
-                initialFilters={advancedFilters} // Corregido: 'initialConditions' a 'initialFilters'
+                columns={commentColumns} 
+                initialFilters={advancedFilters} 
                 onApplyFilters={handleApplyAdvancedFilters}
-                onClose={() => setShowAdvancedFilterBuilder(false)}
+                onClose={() => setShowAdvancedFilterBuilder(false)} 
                 onClearFilters={handleClearAdvancedFiltersFromModal}
               />
             </DialogContent>
           </Dialog>
 
-          <Dialog
-            open={showPreferencesModal}
-            onOpenChange={handlePreferencesModalOpenChange}
-          >
+          <Dialog open={showPreferencesModal} onOpenChange={handlePreferencesModalOpenChange}>
             <DialogTrigger asChild>
               <Button variant="outline" size="icon">
                 <Settings2 className="h-4 w-4" />
@@ -764,15 +808,12 @@ const PlantillaPage = () => {
               <DialogHeader>
                 <DialogTitle>Preferencias de la Tabla</DialogTitle>
                 <DialogDescription>
-                  Personaliza la apariencia y el comportamiento de la tabla de{" "}
-                  {plantillaDataConfig.entityNamePlural.toLowerCase()}.
+                  Personaliza la apariencia y el comportamiento de la tabla de {commentDataConfig.entityNamePlural.toLowerCase()}.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-4">
                 <div>
-                  <Label htmlFor="pageSize" className="text-sm font-medium">
-                    Filas por página
-                  </Label>
+                  <Label htmlFor="pageSize" className="text-sm font-medium">Filas por página</Label>
                   <Select
                     value={String(tempPageSize)}
                     onValueChange={(value) => setTempPageSize(Number(value))}
@@ -782,30 +823,18 @@ const PlantillaPage = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {[10, 20, 30, 40, 50].map((size) => (
-                        <SelectItem key={size} value={String(size)}>
-                          {size}
-                        </SelectItem>
+                        <SelectItem key={size} value={String(size)}>{size}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label
-                    htmlFor="paginationPosition"
-                    className="text-sm font-medium"
-                  >
-                    Posición de la paginación
-                  </Label>
+                  <Label htmlFor="paginationPosition" className="text-sm font-medium">Posición de la paginación</Label>
                   <Select
                     value={tempPaginationPosition}
-                    onValueChange={(value: string) =>
-                      setTempPaginationPosition(value as PaginationPosition)
-                    }
+                    onValueChange={(value: string) => setTempPaginationPosition(value as PaginationPosition)}
                   >
-                    <SelectTrigger
-                      id="paginationPosition"
-                      className="w-full mt-1"
-                    >
+                    <SelectTrigger id="paginationPosition" className="w-full mt-1">
                       <SelectValue placeholder="Seleccionar posición" />
                     </SelectTrigger>
                     <SelectContent>
@@ -816,30 +845,18 @@ const PlantillaPage = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">
-                    Visibilidad de Columnas
-                  </Label>
+                  <Label className="text-sm font-medium">Visibilidad de Columnas</Label>
                   <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 max-h-48 overflow-y-auto">
                     {table.getAllLeafColumns().map((column) => {
-                      // No permitir ocultar selección o acciones desde aquí
                       if (column.id === "select" || column.id === "actions") {
                         return null;
                       }
-                      const headerConfig =
-                        plantillaDataConfig.tableHeaders.find(
-                          (h) => h.accessorKey === column.id
-                        );
+                      const headerConfig = commentDataConfig.tableHeaders.find((h: { accessorKey: string; header: string; }) => h.accessorKey === column.id);
                       return (
-                        <div
-                          key={column.id}
-                          className="flex items-center space-x-2"
-                        >
+                        <div key={column.id} className="flex items-center space-x-2">
                           <Checkbox
                             id={`col-${column.id}`}
-                            checked={
-                              tempColumnVisibility[column.id] ??
-                              column.getIsVisible()
-                            }
+                            checked={tempColumnVisibility[column.id] ?? column.getIsVisible()}
                             onCheckedChange={(value) => {
                               setTempColumnVisibility((prev) => ({
                                 ...prev,
@@ -847,10 +864,7 @@ const PlantillaPage = () => {
                               }));
                             }}
                           />
-                          <Label
-                            htmlFor={`col-${column.id}`}
-                            className="text-sm font-normal cursor-pointer"
-                          >
+                          <Label htmlFor={`col-${column.id}`} className="text-sm font-normal cursor-pointer">
                             {headerConfig?.header || column.id}
                           </Label>
                         </div>
@@ -864,22 +878,13 @@ const PlantillaPage = () => {
                     checked={tempLineWrap}
                     onCheckedChange={(value) => setTempLineWrap(!!value)}
                   />
-                  <Label
-                    htmlFor="lineWrap"
-                    className="text-sm font-normal cursor-pointer"
-                  >
-                    Ajuste de línea en celdas
-                  </Label>
+                  <Label htmlFor="lineWrap" className="text-sm font-normal cursor-pointer">Ajuste de línea en celdas</Label>
                 </div>
                 <div>
-                  <Label htmlFor="tableDensity" className="text-sm font-medium">
-                    Densidad de la tabla
-                  </Label>
+                  <Label htmlFor="tableDensity" className="text-sm font-medium">Densidad de la tabla</Label>
                   <Select
                     value={tempTableDensity}
-                    onValueChange={(value: string) =>
-                      setTempTableDensity(value as TableDensity)
-                    }
+                    onValueChange={(value: string) => setTempTableDensity(value as TableDensity)}
                   >
                     <SelectTrigger id="tableDensity" className="w-full mt-1">
                       <SelectValue placeholder="Seleccionar densidad" />
@@ -891,10 +896,7 @@ const PlantillaPage = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <AlertDialog
-                  open={showDeletePrefsAlert}
-                  onOpenChange={setShowDeletePrefsAlert}
-                >
+                <AlertDialog open={showDeletePrefsAlert} onOpenChange={setShowDeletePrefsAlert}>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" className="w-full">
                       Restablecer Preferencias
@@ -902,13 +904,10 @@ const PlantillaPage = () => {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        ¿Restablecer preferencias?
-                      </AlertDialogTitle>
+                      <AlertDialogTitle>¿Restablecer preferencias?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Esto restablecerá todas las preferencias de la tabla a
-                        sus valores por defecto. Esta acción no se puede
-                        deshacer.
+                        Esto restablecerá todas las preferencias de la tabla a sus valores por defecto.
+                        Esta acción no se puede deshacer.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -921,29 +920,12 @@ const PlantillaPage = () => {
                 </AlertDialog>
               </div>
               <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowPreferencesModal(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button onClick={handleApplyPreferences}>
-                  Aplicar Preferencias
-                </Button>
+                <Button variant="outline" onClick={() => setShowPreferencesModal(false)}>Cancelar</Button>
+                <Button onClick={handleApplyPreferences}>Aplicar Preferencias</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <Button>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Crear {plantillaDataConfig.entityName}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              /* Lógica para refrescar datos */
-            }}
-          >
+          <Button variant="outline" size="icon" onClick={fetchDataFromApi}>
             <RefreshCw className="h-4 w-4" />
             <span className="sr-only">Refrescar datos</span>
           </Button>
@@ -951,22 +933,46 @@ const PlantillaPage = () => {
       </PageSubheader>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {(paginationPosition === "top" || paginationPosition === "both") &&
-          renderPaginationControls()}
-        <Card className="border shadow-sm mt-2">
-          <CardContent className="p-0">
-            <DataTable
-              table={table}
-              lineWrap={lineWrap}
-              tableDensity={tableDensity} // Corregido: 'density' a 'tableDensity'
-            />
-          </CardContent>
-        </Card>
-        {(paginationPosition === "bottom" || paginationPosition === "both") &&
-          renderPaginationControls()}
+        {isLoading && <p className="text-center py-4">Cargando comentarios...</p> }
+        {!isLoading && apiError && !showErrorModal && (
+          <div className="text-red-600 text-center py-4">
+            Error al cargar los datos: {apiError}. Intente refrescar.
+          </div>
+        )}
+        {!isLoading && !apiError && (
+          <>
+            {(paginationPosition === "top" || paginationPosition === "both") && renderPaginationControls()}
+            <Card className="border shadow-sm mt-2">
+              <CardContent className="p-0">
+                <DataTable
+                  table={table}
+                  lineWrap={lineWrap}
+                  tableDensity={tableDensity} 
+                />
+              </CardContent>
+            </Card>
+            {(paginationPosition === "bottom" || paginationPosition === "both") && renderPaginationControls()}
+          </>
+        )}
       </div>
+
+      {showErrorModal && (
+        <AlertDialog open={showErrorModal} onOpenChange={setShowErrorModal}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Error de API</AlertDialogTitle>
+              <AlertDialogDescription>
+                {apiError || "Ocurrió un error desconocido al contactar la API."}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={() => setShowErrorModal(false)}>Entendido</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 };
 
-export default PlantillaPage;
+export default CommentsPage;

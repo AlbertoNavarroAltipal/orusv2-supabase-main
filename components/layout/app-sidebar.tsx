@@ -33,6 +33,12 @@ export function AppSidebar() {
   } else if (
     pathSegments.length > 1 &&
     pathSegments[0] === "dashboard" &&
+    pathSegments[1] === "plantilla"
+  ) {
+    currentModule = "plantilla";
+  } else if (
+    pathSegments.length > 1 &&
+    pathSegments[0] === "dashboard" &&
     pathSegments[1] === "tickets"
   ) {
     currentModule = "tickets";
@@ -97,6 +103,7 @@ export function AppSidebar() {
 
         {/* Renderizar menú según la aplicación activa */}
         {currentModule === "dashboard" && <DashboardMenu pathname={pathname} />}
+        {currentModule === "plantilla" && <PlantillaMenu pathname={pathname} />}
         {currentModule === "users" && <UsersMenu pathname={pathname} />}
         {currentModule === "roles" && <RolesMenu pathname={pathname} />}
         {currentModule === "escuela-altipal" && (
@@ -128,6 +135,19 @@ function DashboardMenu({ pathname }: { pathname: string }) {
         {" "}
         {/* Ruta provisional */}
         Tickets
+      </NavLink>
+      {/* Puedes añadir más NavLink aquí si es necesario para el "etc..." */}
+    </nav>
+  );
+}
+
+function PlantillaMenu({ pathname }: { pathname: string }) {
+  return (
+    <nav className="space-y-2">
+      {" "}
+      {/* Aumentar el espacio entre elementos */}
+      <NavLink href="/dashboard/plantilla" pathname={pathname}>
+        Plantilla page
       </NavLink>
       {/* Puedes añadir más NavLink aquí si es necesario para el "etc..." */}
     </nav>
@@ -275,8 +295,9 @@ interface NavLinkProps {
 }
 
 function NavLink({ href, pathname, children }: NavLinkProps) {
-  const isActive = pathname === href || (href !== "/dashboard/iam" && pathname.startsWith(href));
-
+  const isActive =
+    pathname === href ||
+    (href !== "/dashboard/iam" && pathname.startsWith(href));
 
   return (
     <Link

@@ -1,30 +1,47 @@
 {
-  "pageTitle": "Gestión de Plantillas",
-  "pageDescription": "Administra y visualiza las plantillas del sistema.",
+  "pageTitle": "Visor de Comentarios",
+  "pageDescription": "Explora y filtra comentarios de jsonplaceholder.",
+  "apiEndpoint": "https://jsonplaceholder.typicode.com/comments",
+  "apiResponseSchemas": {
+    "successItemExample": {
+      "postId": 1,
+      "id": 1,
+      "name": "id labore ex et quam laborum",
+      "email": "Eliseo@gardner.biz",
+      "body": "laudantium enim quasi est quidem magnam voluptate ipsam eos\\ntempora quo necessitatibus\\ndolor quam autem quasi\\nreiciendis et nam sapiente accusantium"
+    },
+    "emptySuccess": "[]",
+    "errorExample": {
+      "statusCode": 404,
+      "message": "Recurso no encontrado"
+    }
+  },
   "tableHeaders": [
-    { "accessorKey": "id", "header": "ID" },
-    { "accessorKey": "name", "header": "Nombre de Plantilla" },
-    { "accessorKey": "category", "header": "Categoría" },
-    { "accessorKey": "status", "header": "Estado" },
-    { "accessorKey": "createdBy", "header": "Creado Por" },
-    { "accessorKey": "createdAt", "header": "Fecha Creación" },
-    { "accessorKey": "updatedAt", "header": "Última Modificación" }
+    { "accessorKey": "id", "header": "ID Comentario" },
+    { "accessorKey": "postId", "header": "ID Post" },
+    { "accessorKey": "name", "header": "Nombre" },
+    { "accessorKey": "email", "header": "Email" },
+    { "accessorKey": "body", "header": "Comentario" }
   ],
   "defaultVisibleColumns": [
+    "id",
     "name",
-    "category",
-    "status",
-    "createdAt",
-    "updatedAt"
+    "email",
+    "body"
   ],
-  "apiEndpoint": "/api/plantillas",
-  "entityName": "Plantilla",
-  "entityNamePlural": "Plantillas",
-  "searchPlaceholder": "Buscar plantillas por nombre...",
+  "entityName": "Comentario",
+  "entityNamePlural": "Comentarios",
+  "searchPlaceholder": "Buscar comentarios por nombre, email o cuerpo...",
+  "searchFieldAccessorKey": "name", 
   "advancedFilterFields": [
-    { "value": "name", "label": "Nombre de Plantilla" },
-    { "value": "category", "label": "Categoría" },
-    { "value": "status", "label": "Estado" },
-    { "value": "createdBy", "label": "Creado Por" }
-  ]
+    { "value": "postId", "label": "ID Post" },
+    { "value": "name", "label": "Nombre" },
+    { "value": "email", "label": "Email" },
+    { "value": "body", "label": "Cuerpo del Comentario" }
+  ],
+  "pagination": {
+    "enabled": true,
+    "paramPage": "_page",
+    "paramLimit": "_limit"
+  }
 }
