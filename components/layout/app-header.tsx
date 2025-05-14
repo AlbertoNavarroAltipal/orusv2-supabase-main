@@ -5,10 +5,11 @@ import { usePathname } from "next/navigation"
 import { Menu, Info, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAppStore } from "@/lib/stores"
+import { cn } from "@/lib/utils";
 
 export function AppHeader() {
   const pathname = usePathname()
-  const { toggleAppSidebar, toggleInfoSidebar } = useAppStore()
+  const { appSidebarOpen, toggleAppSidebar, infoSidebarOpen, toggleInfoSidebar } = useAppStore()
 
   // Obtener la ruta actual para mostrar en la miga de pan
   const pathSegments = pathname.split("/").filter(Boolean)
@@ -18,7 +19,17 @@ export function AppHeader() {
   return (
     <header className="bg-white border-b border-gray-200 h-14 flex items-center justify-between px-4">
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="icon" onClick={toggleAppSidebar} className="text-gray-700 hover:bg-gray-100">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleAppSidebar}
+          className={cn(
+            "hover:bg-gray-100 rounded-full",
+            appSidebarOpen
+              ? "bg-[#004f93] text-white hover:bg-[#004f93]/90 hover:text-white"
+              : "text-gray-700"
+          )}
+        >
           <Menu className="h-5 w-5" />
           <span className="sr-only">Abrir menú de la aplicación</span>
         </Button>
@@ -41,7 +52,17 @@ export function AppHeader() {
       </div>
 
       <div className="flex items-center space-x-2">
-        <Button variant="ghost" size="icon" onClick={toggleInfoSidebar} className="text-gray-700 hover:bg-gray-100">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleInfoSidebar}
+          className={cn(
+            "hover:bg-gray-100 rounded-full",
+            infoSidebarOpen
+              ? "bg-[#004f93] text-white hover:bg-[#004f93]/90 hover:text-white"
+              : "text-gray-700"
+          )}
+        >
           <Info className="h-5 w-5" />
           <span className="sr-only">Abrir panel de información</span>
         </Button>
