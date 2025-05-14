@@ -127,7 +127,7 @@ export function MainHeader() {
                 <Input
                   type="search"
                   placeholder="Buscar en ORUS..."
-                  className="peer w-[300px] lg:w-[400px] h-10 bg-white border border-gray-300 text-gray-900 placeholder:text-gray-500 pl-10 pr-4 rounded-full focus:border-primary-500 focus:ring-2 focus:ring-primary-200 focus:ring-opacity-50 transition-all duration-300 ease-in-out" // Fondo blanco, texto oscuro, placeholder gris
+                  className="peer w-[300px] lg:w-[400px] h-8 bg-white border border-gray-300 text-gray-900 placeholder:text-gray-500 pl-10 pr-4 rounded focus:border-primary-500 focus:ring-2 focus:ring-primary-200 focus:ring-opacity-50 transition-all duration-300 ease-in-out" // Fondo blanco, texto oscuro, placeholder gris
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
