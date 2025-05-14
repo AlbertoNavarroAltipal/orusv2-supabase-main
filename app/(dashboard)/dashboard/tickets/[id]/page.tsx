@@ -380,7 +380,7 @@ const TicketDetailPage = () => {
       <main className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
         <Card className="mb-6 shadow-lg">
           <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <CardTitle className="text-2xl font-bold text-primary-600">
                 {ticket.subject}
@@ -429,8 +429,8 @@ const TicketDetailPage = () => {
               </Select>
             </div>
           </div>
-          <Separator className="my-4" />
-          <div className="flex flex-wrap gap-2">
+            <Separator className="my-4" />
+            <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm">
               <Edit3 className="mr-2 h-4 w-4" /> Editar Ticket
             </Button>
@@ -445,8 +445,8 @@ const TicketDetailPage = () => {
                   <CheckCircle className="mr-2 h-4 w-4" /> Marcar como Cerrado
                 </Button>
               )}
-          </div>
-        </CardHeader>
+            </div>
+          </CardHeader>
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -573,6 +573,7 @@ const TicketDetailPage = () => {
           </Card>
 
         </div>
+      </div>
       </main>
     </>
   );
