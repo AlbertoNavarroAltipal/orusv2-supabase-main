@@ -1,0 +1,106 @@
+{
+  "jsonPlaceholder": {
+    "displayName": "JSONPlaceholder Users (REST)",
+    "type": "REST",
+    "baseUrl": "https://jsonplaceholder.typicode.com/users",
+    "method": "GET",
+    "authentication": { "type": "none" },
+    "paramMappings": { "offset": "_start", "limit": "_limit", "sortBy": "_sort", "sortOrder": "_order", "searchTerm": "q" },
+    "responseMapping": {
+      "dataPath": "",
+      "totalCalculation": "estimateFromResponseLength",
+      "fields": { "id": "id", "nombreCompleto": "name", "email": "email", "rol": "company.bs", "ultimoAcceso": null, "selected": null }
+    },
+    "tableConfig": {
+      "title": "Usuarios (JSONPlaceholder)", "description": "Lista de usuarios de ejemplo de JSONPlaceholder.", "defaultSortBy": "nombreCompleto",
+      "allTableColumns": [
+        { "accessorKey": "nombreCompleto", "header": "Nombre Completo" }, { "accessorKey": "email", "header": "Email" },
+        { "accessorKey": "rol", "header": "Rol (BS)" }, { "accessorKey": "ultimoAcceso", "header": "Último Acceso" },
+        { "accessorKey": "id", "header": "ID" }
+      ],
+      "filterableColumns": [
+        { "value": "nombreCompleto", "label": "Nombre Completo" }, { "value": "email", "label": "Email" },
+        { "value": "rol", "label": "Rol (BS)" }
+      ]
+    }
+  },
+  "miApiPersonalizadaRest": {
+    "displayName": "Mi API de Clientes (REST)",
+    "type": "REST",
+    "baseUrl": "https://mi.api.personalizada/api/v1/clientes",
+    "method": "GET",
+    "authentication": { "type": "bearer", "tokenValue": "TU_TOKEN_AQUI_O_VARIABLE_DE_ENTORNO" },
+    "paramMappings": { "offset": "page_offset", "limit": "page_limit", "sortBy": "sort_field", "sortOrder": "sort_direction", "searchTerm": "search_term" },
+    "advancedFiltersFormatterConfig": {
+      "paramNameTemplate": "{field}{operatorSuffix}",
+      "operatorSuffixMap": { "contains": "_like", "equals": "_eq", "not_equals": "_ne" },
+      "valueWrapper": ""
+    },
+    "responseMapping": {
+      "dataPath": "data.items", "totalPath": "data.pagination.totalCount",
+      "fields": { "id": "uuid", "nombreCompleto": "profile.full_name", "email": "contact.primary_email", "rol": "user_type", "ultimoAcceso": "profile.last_login_date", "selected": null }
+    },
+    "tableConfig": {
+      "title": "Mis Clientes (REST)", "description": "Gestión de clientes desde mi API personalizada.", "defaultSortBy": "nombreCompleto",
+      "allTableColumns": [
+        { "accessorKey": "nombreCompleto", "header": "Cliente" }, { "accessorKey": "email", "header": "Email Principal" },
+        { "accessorKey": "rol", "header": "Tipo" }, { "accessorKey": "ultimoAcceso", "header": "Último Login" },
+        { "accessorKey": "id", "header": "UUID" }
+      ],
+      "filterableColumns": [
+        { "value": "nombreCompleto", "label": "Cliente" }, { "value": "email", "label": "Email Principal" },
+        { "value": "rol", "label": "Tipo" }
+      ]
+    }
+  },
+  "miApiGraphQL": {
+    "displayName": "Mi API de Productos (GraphQL)",
+    "type": "GraphQL",
+    "baseUrl": "https://mi.api.graphql/endpoint",
+    "method": "POST",
+    "authentication": { "type": "apiKey", "keyName": "X-Api-Key", "keyValue": "MI_GRAPHQL_API_KEY", "in": "header" },
+    "graphqlConfig": {
+      "queryTemplate": "query GetProducts($limit: Int, $offset: Int, $sortBy: String, $sortOrder: String, $searchTerm: String) { products(limit: $limit, offset: $offset, sort: { field: $sortBy, order: $sortOrder }, search: $searchTerm) { items { id_producto nombre precio categoria { nombre_cat } stock } totalCount } }",
+      "variableMappings": {
+        "offset": "offset", "limit": "limit", "sortBy": "sortBy", "sortOrder": "sortOrder", "searchTerm": "searchTerm"
+      }
+    },
+    "responseMapping": {
+      "dataPath": "data.products.items", "totalPath": "data.products.totalCount",
+      "fields": { "id": "id_producto", "nombreCompleto": "nombre", "email": null, "rol": "categoria.nombre_cat", "ultimoAcceso": null, "selected": null }
+    },
+    "tableConfig": {
+      "title": "Productos (GraphQL)", "description": "Lista de productos desde API GraphQL.", "defaultSortBy": "nombreCompleto",
+      "allTableColumns": [
+        { "accessorKey": "nombreCompleto", "header": "Producto" }, { "accessorKey": "rol", "header": "Categoría" },
+        { "accessorKey": "id", "header": "ID Producto" }
+      ],
+      "filterableColumns": [ { "value": "nombreCompleto", "label": "Producto" }, { "value": "rol", "label": "Categoría" } ]
+    }
+  },
+  "miServicioSOAP": {
+    "displayName": "Servicio de Empleados (SOAP)",
+    "type": "SOAP",
+    "baseUrl": "https://mi.servicio.soap/empleados?wsdl",
+    "authentication": { "type": "none" },
+    "soapConfig": {
+      "action": "http://tempuri.org/IEmpleadoService/GetEmpleadosPaginados",
+      "requestTemplate": "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:tem='http://tempuri.org/'><soapenv:Header/><soapenv:Body><tem:GetEmpleadosPaginados><tem:pageNumber>{{offset_divided_by_limit_plus_1}}</tem:pageNumber><tem:pageSize>{{limit}}</tem:pageSize><tem:sortBy>{{sortBy}}</tem:sortBy><tem:sortOrder>{{sortOrder}}</tem:sortOrder></tem:GetEmpleadosPaginados></soapenv:Body></soapenv:Envelope>",
+      "responseNamespace": "http://tempuri.org/",
+      "resultPath": "//GetEmpleadosPaginadosResponse/GetEmpleadosPaginadosResult/Empleados/Empleado",
+      "totalPath": "//GetEmpleadosPaginadosResponse/GetEmpleadosPaginadosResult/TotalCount"
+    },
+    "responseMapping": {
+      "dataPath": "SOAP_DATA_PATH_UNUSED",
+      "fields": { "id": "ID", "nombreCompleto": "NombreCompleto", "email": "Email", "rol": "Puesto", "ultimoAcceso": "FechaUltimoLogin", "selected": null }
+    },
+    "tableConfig": {
+      "title": "Empleados (SOAP)", "description": "Lista de empleados desde servicio SOAP.", "defaultSortBy": "nombreCompleto",
+      "allTableColumns": [
+        { "accessorKey": "nombreCompleto", "header": "Empleado" }, { "accessorKey": "email", "header": "Email" },
+        { "accessorKey": "rol", "header": "Puesto" }, { "accessorKey": "id", "header": "ID Empleado" }
+      ],
+      "filterableColumns": [ { "value": "nombreCompleto", "label": "Empleado" }, { "value": "email", "label": "Email" } ]
+    }
+  }
+}

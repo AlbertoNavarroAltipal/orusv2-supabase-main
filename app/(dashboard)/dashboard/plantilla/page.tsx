@@ -18,6 +18,19 @@ import AdvanceFilter, {
 } from "./components/advance-filter";
 import TableConfigModal from "./components/table-configs";
 
+// Helper para verificar si una cadena es una keyof UserData
+// Definido a nivel de módulo para que esté disponible
+function isKeyOfUserData(key: string | keyof UserData): key is keyof UserData {
+  const sampleUserDataKeys: Array<keyof UserData> = [
+    "id",
+    "nombreCompleto",
+    "email",
+    "rol",
+    "ultimoAcceso",
+  ]; // Claves conocidas de UserData
+  return sampleUserDataKeys.includes(key as keyof UserData);
+}
+
 function PlantillaPageContent() {
   const router = useRouter();
   const advanceFilterRef = useRef<AdvanceFilterHandle>(null);
@@ -103,14 +116,17 @@ function PlantillaPageContent() {
       Number.isFinite(itemsPerPage) && itemsPerPage > 0 ? itemsPerPage : 10;
 
     try {
-      const result = await plantillaConfig.fetchData({
-        // Usar la función desde la configuración
+      // Modificado para usar dataFetcher.fetchData
+      const result = await plantillaConfig.dataFetcher.fetchData({
         offset: (validPage - 1) * validLimit,
         limit: validLimit,
-        sortBy: sortBy || undefined,
+        sortBy: sortBy || undefined, // sortBy puede ser string o keyof UserData
         sortOrder: sortOrder,
         searchTerm: searchTerm,
         advancedFilters: appliedAdvancedFilters,
+        // Aquí podrías pasar parámetros adicionales específicos si tu dataFetcher los necesita
+        // Por ejemplo: fechaInicio: '2024-01-01', fechaFin: '2024-12-31'
+        // Estos serían capturados por `...additionalParams` en `createApiFetcher`
       });
       setData(result.data);
       setTotalItems(result.total);
@@ -252,11 +268,14 @@ function PlantillaPageContent() {
         onClose={closeTableConfigModal}
         itemsPerPage={itemsPerPage}
         onItemsPerPageChange={handleItemsPerPageChange}
-        availableColumns={allTableColumns.map((col) => ({
-          ...col,
-          key: col.accessorKey,
-        }))} // Mapear a la estructura esperada por TableConfigModal
-        visibleColumns={visibleColumns}
+        availableColumns={allTableColumns
+          .filter((col) => isKeyOfUserData(col.accessorKey)) // Filtrar aquí
+          .map((col) => ({
+            key: col.accessorKey as keyof UserData, // Cast seguro después de filtrar
+            header: col.header,
+            // No es necesario esparcir ...col si solo necesitas key y header
+          }))}
+        visibleColumns={visibleColumns} // visibleColumns ya es (keyof UserData)[]
         onVisibleColumnsChange={setVisibleColumns}
         paginationPosition={tablePaginationPosition}
         onPaginationPositionChange={setTablePaginationPosition}
