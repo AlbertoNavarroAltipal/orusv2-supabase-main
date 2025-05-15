@@ -6,13 +6,13 @@ import { Search, Filter, RefreshCw, UploadCloud, DownloadCloud, PlusCircle } fro
 interface HeaderProps {
   searchTerm: string;
   onSearchTermChange: (term: string) => void;
+  onAdvancedFilterClick: () => void; // Prop para manejar el clic en filtros avanzados
   // Aquí se podrían añadir más props para los otros botones si se necesita pasarles funcionalidad desde la página
-  // onAdvancedFilterClick: () => void;
   // onRefreshClick: () => void;
   // etc.
 }
 
-const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchTermChange }) => {
+const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchTermChange, onAdvancedFilterClick }) => {
   return (
     <div className="mb-6">
       <div className="flex flex-col md:flex-row justify-between md:items-center mb-4">
@@ -44,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchTermChange }) => {
           />
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={onAdvancedFilterClick}>
             <Filter className="mr-2 h-4 w-4" /> Filtros Avanzados
           </Button>
           <Button variant="outline" size="icon">
