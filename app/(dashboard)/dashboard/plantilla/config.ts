@@ -3,7 +3,7 @@ import { fetchMockData } from "./data/mock-data";
 import type { AdvancedFilterCondition } from "./components/advance-filter";
 
 import activeApiConfig from "./active-api.json";
-import apiDefinitionsData from "./api-definitions.json";
+import { apiDefinitions } from "./api-definitions";
 
 // --- 1. Definiciones de Tipos ---
 
@@ -459,13 +459,13 @@ function createFetcherFromDefinition(definition: ApiDefinition): IDataFetcher {
 
 // --- 4. Configuración Principal ---
 // ... (resto del archivo sin cambios)
-const apiDefs = apiDefinitionsData as Record<string, ApiDefinition>;
+const apiDefs = apiDefinitions as Record<string, ApiDefinition>;
 const activeApiName = activeApiConfig.currentApiName;
 const activeApiDefinition = apiDefs[activeApiName];
 
 if (!activeApiDefinition) {
   throw new Error(
-    `No se encontró la definición para la API activa: "${activeApiName}" en api-definitions.json`
+    `No se encontró la definición para la API activa: "${activeApiName}" en api-definitions.ts`
   );
 }
 
