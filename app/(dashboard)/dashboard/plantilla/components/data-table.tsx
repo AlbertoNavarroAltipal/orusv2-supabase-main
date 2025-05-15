@@ -37,6 +37,9 @@ interface DataTableProps {
   isLoading?: boolean; // Añadir isLoading como prop opcional
   visibleColumns: (keyof UserData)[];
   paginationPosition?: "top" | "bottom" | "both" | "none"; // 'both' por defecto si no se especifica
+  enableSorting?: boolean;
+  enableRowSelection?: boolean;
+  tableDensity?: "compact" | "normal" | "spacious";
 }
 
 const DataTableComponent: React.FC<DataTableProps> = ({
@@ -52,6 +55,9 @@ const DataTableComponent: React.FC<DataTableProps> = ({
   isLoading = false, // Valor por defecto para isLoading
   visibleColumns,
   paginationPosition = "both", // Valor por defecto
+  enableSorting = true,
+  enableRowSelection = true,
+  tableDensity = "normal",
 }) => {
   const [tableData, setTableData] = useState<UserData[]>([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -105,6 +111,12 @@ const DataTableComponent: React.FC<DataTableProps> = ({
 
   // console.log("DataTable rendered. CurrentPage:", currentPage, "SortBy:", sortBy, "SortOrder:", sortOrder, "Data length:", initialData.length);
 
+  const densityClasses = {
+    compact: "py-1 px-2",
+    normal: "py-2 px-3", // O las clases por defecto de shadcn/ui TableCell
+    spacious: "py-4 px-3",
+  };
+  const currentDensityClass = densityClasses[tableDensity];
 
   const PaginationControls = () => (
     <div className="flex items-center justify-between p-4 border-t">
@@ -138,23 +150,29 @@ const DataTableComponent: React.FC<DataTableProps> = ({
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-white">{/* Header pegajoso */}
             <TableRow>
-              <TableHead className="w-[40px]">
-                <Checkbox
-                  checked={selectAll}
-                  onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
-                  disabled={tableData.length === 0}
-                />
-              </TableHead>
+              {enableRowSelection && (
+                <TableHead className={`w-[40px] ${currentDensityClass}`}>
+                  <Checkbox
+                    checked={selectAll}
+                    onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
+                    disabled={tableData.length === 0}
+                  />
+                </TableHead>
+              )}
               {displayedColumns.map((column) => (
-                <TableHead key={column.accessorKey}>
-                  <Button variant="ghost" onClick={() => onSortChange(column.accessorKey as keyof UserData)}>
-                    {column.header}
-                    {sortBy === column.accessorKey ? (
-                      sortOrder === 'asc' ? <ArrowUpDown className="ml-2 h-4 w-4 text-blue-500" /> : <ArrowUpDown className="ml-2 h-4 w-4 text-blue-500 transform rotate-180" />
-                    ) : (
-                      <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />
-                    )}
-                  </Button>
+                <TableHead key={column.accessorKey} className={currentDensityClass}>
+                  {enableSorting ? (
+                    <Button variant="ghost" onClick={() => onSortChange(column.accessorKey as keyof UserData)}>
+                      {column.header}
+                      {sortBy === column.accessorKey ? (
+                        sortOrder === 'asc' ? <ArrowUpDown className="ml-2 h-4 w-4 text-blue-500" /> : <ArrowUpDown className="ml-2 h-4 w-4 text-blue-500 transform rotate-180" />
+                      ) : (
+                        <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />
+                      )}
+                    </Button>
+                  ) : (
+                    column.header
+                  )}
                 </TableHead>
               ))}
             </TableRow>
@@ -163,11 +181,13 @@ const DataTableComponent: React.FC<DataTableProps> = ({
             {isLoading ? (
               Array.from({ length: itemsPerPage }).map((_, index) => (
                 <TableRow key={`skeleton-${index}`}>
-                  <TableCell className="w-[40px]">
-                    <Skeleton className="h-4 w-4" />
-                  </TableCell>
+                  {enableRowSelection && (
+                    <TableCell className={`w-[40px] ${currentDensityClass}`}>
+                      <Skeleton className="h-4 w-4" />
+                    </TableCell>
+                  )}
                   {displayedColumns.map((column) => (
-                    <TableCell key={column.accessorKey}>
+                    <TableCell key={column.accessorKey} className={currentDensityClass}>
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
                   ))}
@@ -176,15 +196,17 @@ const DataTableComponent: React.FC<DataTableProps> = ({
             ) : tableData.length > 0 ? (
               tableData.map((row) => (
                 <TableRow key={row.id} data-state={row.selected && "selected"}>
-                  <TableCell>
-                    <Checkbox
-                      checked={!!row.selected} // Asegurar que sea booleano
-                      onCheckedChange={(checked) => handleRowSelect(row.id, checked as boolean)}
-                    />
-                  </TableCell>
+                  {enableRowSelection && (
+                    <TableCell className={currentDensityClass}>
+                      <Checkbox
+                        checked={!!row.selected} // Asegurar que sea booleano
+                        onCheckedChange={(checked) => handleRowSelect(row.id, checked as boolean)}
+                      />
+                    </TableCell>
+                  )}
                   {/* Renderizar celdas dinámicamente según displayedColumns */}
                   {displayedColumns.map(column => (
-                    <TableCell key={column.accessorKey}>
+                    <TableCell key={column.accessorKey} className={currentDensityClass}>
                       {row[column.accessorKey as keyof UserData]}
                     </TableCell>
                   ))}
@@ -192,7 +214,7 @@ const DataTableComponent: React.FC<DataTableProps> = ({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={displayedColumns.length + 1} className="h-24 text-center">
+                <TableCell colSpan={displayedColumns.length + (enableRowSelection ? 1 : 0)} className={`h-24 text-center ${currentDensityClass}`}>
                   No hay resultados.
                 </TableCell>
               </TableRow>

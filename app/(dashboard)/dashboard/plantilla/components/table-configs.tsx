@@ -22,6 +22,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { UserData } from "./data-table"; // Asumiendo que UserData define las columnas
 
 // Definición de las props del modal
@@ -35,6 +36,12 @@ interface TableConfigModalProps {
   availableColumns: { key: keyof UserData; header: string }[];
   visibleColumns: (keyof UserData)[];
   onVisibleColumnsChange: (columns: (keyof UserData)[]) => void;
+  enableSorting: boolean;
+  onEnableSortingChange: (enabled: boolean) => void;
+  enableRowSelection: boolean;
+  onEnableRowSelectionChange: (enabled: boolean) => void;
+  tableDensity: "compact" | "normal" | "spacious";
+  onTableDensityChange: (density: "compact" | "normal" | "spacious") => void;
 }
 
 const TableConfigModal: React.FC<TableConfigModalProps> = ({
@@ -47,11 +54,20 @@ const TableConfigModal: React.FC<TableConfigModalProps> = ({
   onVisibleColumnsChange,
   paginationPosition,
   onPaginationPositionChange,
+  enableSorting,
+  onEnableSortingChange,
+  enableRowSelection,
+  onEnableRowSelectionChange,
+  tableDensity,
+  onTableDensityChange,
 }) => {
   // Estados locales para manejar los cambios antes de guardarlos
   const [currentItemsPerPage, setCurrentItemsPerPage] = useState(itemsPerPage);
   const [currentSelectedColumns, setCurrentSelectedColumns] = useState<(keyof UserData)[]>(visibleColumns);
   const [currentPaginationPosition, setCurrentPaginationPosition] = useState(paginationPosition);
+  const [currentEnableSorting, setCurrentEnableSorting] = useState(enableSorting);
+  const [currentEnableRowSelection, setCurrentEnableRowSelection] = useState(enableRowSelection);
+  const [currentTableDensity, setCurrentTableDensity] = useState(tableDensity);
 
   const handleColumnToggle = (columnKey: keyof UserData) => {
     setCurrentSelectedColumns((prev) =>
@@ -65,6 +81,9 @@ const TableConfigModal: React.FC<TableConfigModalProps> = ({
     onItemsPerPageChange(currentItemsPerPage);
     onVisibleColumnsChange(currentSelectedColumns);
     onPaginationPositionChange(currentPaginationPosition);
+    onEnableSortingChange(currentEnableSorting);
+    onEnableRowSelectionChange(currentEnableRowSelection);
+    onTableDensityChange(currentTableDensity);
     onClose();
   };
 
@@ -75,8 +94,11 @@ const TableConfigModal: React.FC<TableConfigModalProps> = ({
       setCurrentItemsPerPage(itemsPerPage);
       setCurrentSelectedColumns(visibleColumns);
       setCurrentPaginationPosition(paginationPosition);
+      setCurrentEnableSorting(enableSorting);
+      setCurrentEnableRowSelection(enableRowSelection);
+      setCurrentTableDensity(tableDensity);
     }
-  }, [isOpen, itemsPerPage, visibleColumns, paginationPosition]);
+  }, [isOpen, itemsPerPage, visibleColumns, paginationPosition, enableSorting, enableRowSelection, tableDensity]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -158,6 +180,62 @@ const TableConfigModal: React.FC<TableConfigModalProps> = ({
               ))}
             </div>
           </div>
+
+          <Separator />
+
+          {/* Enable Sorting */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="enableSorting" className="text-right col-span-3">
+              Habilitar ordenación de columnas
+            </Label>
+            <Switch
+              id="enableSorting"
+              checked={currentEnableSorting}
+              onCheckedChange={setCurrentEnableSorting}
+              className="col-span-1 justify-self-start"
+            />
+          </div>
+
+          {/* Enable Row Selection */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="enableRowSelection" className="text-right col-span-3">
+              Habilitar selección de filas
+            </Label>
+            <Switch
+              id="enableRowSelection"
+              checked={currentEnableRowSelection}
+              onCheckedChange={setCurrentEnableRowSelection}
+              className="col-span-1 justify-self-start"
+            />
+          </div>
+
+          <Separator />
+
+          {/* Table Density */}
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label className="text-right col-span-1 pt-2">
+              Densidad de la Tabla
+            </Label>
+            <RadioGroup
+              value={currentTableDensity}
+              onValueChange={(value: "compact" | "normal" | "spacious") => setCurrentTableDensity(value)}
+              className="col-span-3 grid grid-cols-3 gap-x-4 gap-y-2" // Ajustado a 3 columnas
+            >
+              {[
+                { value: "compact", label: "Compacta" },
+                { value: "normal", label: "Normal" },
+                { value: "spacious", label: "Espaciosa" },
+              ].map((option) => (
+                <div key={option.value} className="flex items-center space-x-2">
+                  <RadioGroupItem value={option.value} id={`density-${option.value}`} />
+                  <Label htmlFor={`density-${option.value}`} className="font-normal">
+                    {option.label}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+
         </div>
         <DialogFooter>
           <DialogClose asChild>

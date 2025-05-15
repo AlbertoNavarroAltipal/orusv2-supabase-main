@@ -50,9 +50,16 @@ function PlantillaPageContent() {
     // Añadir 'id' o cualquier otra columna si se quiere poder mostrar/ocultar
   ];
   const [visibleColumns, setVisibleColumns] = useState<(keyof UserData)[]>(
-    allTableColumns.map(col => col.key) // Inicialmente todas visibles
+    allTableColumns.map((col) => col.key) // Inicialmente todas visibles
   );
-  const [tablePaginationPosition, setTablePaginationPosition] = useState<"top" | "bottom" | "both" | "none">("both");
+  const [tablePaginationPosition, setTablePaginationPosition] = useState<
+    "top" | "bottom" | "both" | "none"
+  >("both");
+  const [enableSorting, setEnableSorting] = useState(true);
+  const [enableRowSelection, setEnableRowSelection] = useState(true);
+  const [tableDensity, setTableDensity] = useState<
+    "normal" | "compact" | "spacious"
+  >("normal");
 
   // Efecto para actualizar la URL cuando cambian los parámetros de paginación o búsqueda
   useEffect(() => {
@@ -214,6 +221,9 @@ function PlantillaPageContent() {
         isLoading={isLoading}
         visibleColumns={visibleColumns}
         paginationPosition={tablePaginationPosition}
+        enableSorting={enableSorting}
+        enableRowSelection={enableRowSelection}
+        tableDensity={tableDensity}
       />
       <AdvanceFilter
         ref={advanceFilterRef}
@@ -232,6 +242,12 @@ function PlantillaPageContent() {
         onVisibleColumnsChange={setVisibleColumns}
         paginationPosition={tablePaginationPosition}
         onPaginationPositionChange={setTablePaginationPosition}
+        enableSorting={enableSorting}
+        onEnableSortingChange={setEnableSorting}
+        enableRowSelection={enableRowSelection}
+        onEnableRowSelectionChange={setEnableRowSelection}
+        tableDensity={tableDensity}
+        onTableDensityChange={setTableDensity}
       />
     </div>
   );
