@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { useSupabase } from "@/lib/supabase/provider"
 import type { Session, User } from "@supabase/supabase-js"
 import type { Profile } from "@/types/user"
+import { SessionLostModal } from "@/components/auth/session-lost-modal" // Nueva importación
 
 type AuthContextType = {
   user: User | null
@@ -29,43 +30,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [showSessionLostModal, setShowSessionLostModal] = useState(false) // Nuevo estado para el modal
+  const [initialAuthCheckCompleted, setInitialAuthCheckCompleted] = useState(false) // Nuevo estado para la comprobación inicial
 
   useEffect(() => {
     const getSession = async () => {
       const {
-        data: { session },
+        data: { session: currentSession },
       } = await supabase.auth.getSession()
-      setSession(session)
-      setUser(session?.user ?? null)
+      setSession(currentSession)
+      setUser(currentSession?.user ?? null)
 
-      if (session?.user) {
-        const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single()
-
+      if (currentSession?.user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", currentSession.user.id)
+          .single()
         setProfile(data)
       }
-
       setIsLoading(false)
+      setInitialAuthCheckCompleted(true) // Marcar la comprobación inicial como completada
     }
 
     getSession()
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("[AuthProvider] onAuthStateChange event:", event, "session:", session)
-      setSession(session)
-      setUser(session?.user ?? null)
+    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log("[AuthProvider] onAuthStateChange event:", event, "session:", newSession)
+      const wasUserLoggedIn = user !== null
 
-      if (session?.user) {
-        const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single()
+      setSession(newSession)
+      setUser(newSession?.user ?? null)
 
+      if (newSession?.user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", newSession.user.id)
+          .single()
         setProfile(data)
       } else {
         setProfile(null)
+        // Si el usuario estaba logueado y ahora no hay sesión (y la comprobación inicial ha pasado), mostrar modal
+        if (wasUserLoggedIn && initialAuthCheckCompleted) {
+          console.log("[AuthProvider] Session lost or user signed out, showing modal.")
+          setShowSessionLostModal(true)
+        }
       }
 
-      setIsLoading(false)
-      router.refresh()
+      // Si el evento es SIGNED_OUT y la comprobación inicial ha pasado, mostrar modal
+      if (event === "SIGNED_OUT" && initialAuthCheckCompleted) {
+        console.log("[AuthProvider] SIGNED_OUT event received, showing modal.")
+        setShowSessionLostModal(true)
+      }
+
+
+      setIsLoading(false) // Asegurarse de que isLoading se actualice
+      // No refrescar la ruta aquí si vamos a mostrar un modal y redirigir desde allí
+      // router.refresh() // Comentado para evitar conflictos con la redirección del modal
     })
 
     return () => {
@@ -140,7 +164,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updatePassword,
   }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <SessionLostModal
+        isOpen={showSessionLostModal}
+        onClose={() => setShowSessionLostModal(false)}
+      />
+    </AuthContext.Provider>
+  )
 }
 
 export const useAuth = () => {
