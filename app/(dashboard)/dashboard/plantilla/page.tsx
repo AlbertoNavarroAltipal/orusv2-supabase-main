@@ -15,6 +15,7 @@ import AdvanceFilter, {
   type AdvanceFilterHandle,
   type AdvancedFilterCondition,
 } from "./components/advance-filter";
+import TableConfigModal from "./components/table-configs";
 
 function PlantillaPageContent() {
   const router = useRouter();
@@ -38,6 +39,20 @@ function PlantillaPageContent() {
   const [appliedAdvancedFilters, setAppliedAdvancedFilters] = useState<
     AdvancedFilterCondition[]
   >([]);
+  const [isTableConfigModalOpen, setIsTableConfigModalOpen] = useState(false);
+
+  // Definición de todas las columnas posibles y las visibles por defecto
+  const allTableColumns: { key: keyof UserData; header: string }[] = [
+    { key: "nombreCompleto", header: "Nombre Completo" },
+    { key: "email", header: "Email" },
+    { key: "rol", header: "Rol" },
+    { key: "ultimoAcceso", header: "Último Acceso" },
+    // Añadir 'id' o cualquier otra columna si se quiere poder mostrar/ocultar
+  ];
+  const [visibleColumns, setVisibleColumns] = useState<(keyof UserData)[]>(
+    allTableColumns.map(col => col.key) // Inicialmente todas visibles
+  );
+  const [tablePaginationPosition, setTablePaginationPosition] = useState<"top" | "bottom" | "both" | "none">("both");
 
   // Efecto para actualizar la URL cuando cambian los parámetros de paginación o búsqueda
   useEffect(() => {
@@ -161,6 +176,14 @@ function PlantillaPageContent() {
     advanceFilterRef.current?.openModal();
   };
 
+  const handleTableConfigClick = () => {
+    setIsTableConfigModalOpen(true);
+  };
+
+  const closeTableConfigModal = () => {
+    setIsTableConfigModalOpen(false);
+  };
+
   const filterableColumns: { value: keyof UserData; label: string }[] = [
     { value: "nombreCompleto", label: "Nombre Completo" },
     { value: "email", label: "Email" },
@@ -176,6 +199,7 @@ function PlantillaPageContent() {
         onSearchTermChange={handleSearchTermChange}
         onAdvancedFilterClick={openAdvanceFilterModal}
         appliedFiltersCount={appliedAdvancedFilters.length}
+        onTableConfigClick={handleTableConfigClick}
       />
       <DataTable
         data={data}
@@ -188,6 +212,8 @@ function PlantillaPageContent() {
         sortOrder={sortOrder}
         onSortChange={handleSort}
         isLoading={isLoading}
+        visibleColumns={visibleColumns}
+        paginationPosition={tablePaginationPosition}
       />
       <AdvanceFilter
         ref={advanceFilterRef}
@@ -195,6 +221,17 @@ function PlantillaPageContent() {
         onFiltersApplied={handleApplyAdvancedFilters}
         onFiltersCleared={handleClearAdvancedFilters}
         filterableColumns={filterableColumns}
+      />
+      <TableConfigModal
+        isOpen={isTableConfigModalOpen}
+        onClose={closeTableConfigModal}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={handleItemsPerPageChange}
+        availableColumns={allTableColumns}
+        visibleColumns={visibleColumns}
+        onVisibleColumnsChange={setVisibleColumns}
+        paginationPosition={tablePaginationPosition}
+        onPaginationPositionChange={setTablePaginationPosition}
       />
     </div>
   );

@@ -35,7 +35,8 @@ interface DataTableProps {
   sortOrder: 'asc' | 'desc';
   onSortChange: (columnKey: keyof UserData) => void;
   isLoading?: boolean; // Añadir isLoading como prop opcional
-  // Props para filtros, selección de columnas se agregarán aquí
+  visibleColumns: (keyof UserData)[];
+  paginationPosition?: "top" | "bottom" | "both" | "none"; // 'both' por defecto si no se especifica
 }
 
 const DataTableComponent: React.FC<DataTableProps> = ({
@@ -49,6 +50,8 @@ const DataTableComponent: React.FC<DataTableProps> = ({
   sortOrder,
   onSortChange,
   isLoading = false, // Valor por defecto para isLoading
+  visibleColumns,
+  paginationPosition = "both", // Valor por defecto
 }) => {
   const [tableData, setTableData] = useState<UserData[]>([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -81,13 +84,19 @@ const DataTableComponent: React.FC<DataTableProps> = ({
     }
   };
 
-  // `columns` podría memoizarse con useMemo si fuera más complejo o dependiera de props
-  const columns = [
+  // `columns` ahora se define como todas las columnas posibles, luego se filtra.
+  const allPossibleColumns: { accessorKey: keyof UserData; header: string }[] = [
     { accessorKey: 'nombreCompleto', header: 'Nombre Completo' },
     { accessorKey: 'email', header: 'Email' },
     { accessorKey: 'rol', header: 'Rol' },
     { accessorKey: 'ultimoAcceso', header: 'Último Acceso' },
+    // Asegúrate de que 'id' esté aquí si alguna vez se necesita mostrar, aunque usualmente no.
+    // { accessorKey: 'id', header: 'ID' },
   ];
+
+  const displayedColumns = React.useMemo(() => {
+    return allPossibleColumns.filter(col => visibleColumns.includes(col.accessorKey));
+  }, [visibleColumns, allPossibleColumns]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -124,10 +133,10 @@ const DataTableComponent: React.FC<DataTableProps> = ({
 
   return (
     <div className="bg-white">
-      <PaginationControls />
+      {(paginationPosition === "top" || paginationPosition === "both") && <PaginationControls />}
       <div className="overflow-x-auto"> {/* Contenedor para scroll horizontal si es necesario y para el sticky header */}
         <Table>
-          <TableHeader className="sticky top-0 z-10 bg-white"> {/* Header pegajoso */}
+          <TableHeader className="sticky top-0 z-10 bg-white">{/* Header pegajoso */}
             <TableRow>
               <TableHead className="w-[40px]">
                 <Checkbox
@@ -136,7 +145,7 @@ const DataTableComponent: React.FC<DataTableProps> = ({
                   disabled={tableData.length === 0}
                 />
               </TableHead>
-              {columns.map((column) => (
+              {displayedColumns.map((column) => (
                 <TableHead key={column.accessorKey}>
                   <Button variant="ghost" onClick={() => onSortChange(column.accessorKey as keyof UserData)}>
                     {column.header}
@@ -157,7 +166,7 @@ const DataTableComponent: React.FC<DataTableProps> = ({
                   <TableCell className="w-[40px]">
                     <Skeleton className="h-4 w-4" />
                   </TableCell>
-                  {columns.map((column) => (
+                  {displayedColumns.map((column) => (
                     <TableCell key={column.accessorKey}>
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
@@ -173,15 +182,17 @@ const DataTableComponent: React.FC<DataTableProps> = ({
                       onCheckedChange={(checked) => handleRowSelect(row.id, checked as boolean)}
                     />
                   </TableCell>
-                  <TableCell>{row.nombreCompleto}</TableCell>
-                  <TableCell>{row.email}</TableCell>
-                  <TableCell>{row.rol}</TableCell>
-                  <TableCell>{row.ultimoAcceso}</TableCell>
+                  {/* Renderizar celdas dinámicamente según displayedColumns */}
+                  {displayedColumns.map(column => (
+                    <TableCell key={column.accessorKey}>
+                      {row[column.accessorKey as keyof UserData]}
+                    </TableCell>
+                  ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length + 1} className="h-24 text-center">
+                <TableCell colSpan={displayedColumns.length + 1} className="h-24 text-center">
                   No hay resultados.
                 </TableCell>
               </TableRow>
@@ -189,7 +200,7 @@ const DataTableComponent: React.FC<DataTableProps> = ({
           </TableBody>
         </Table>
       </div>
-      <PaginationControls />
+      {(paginationPosition === "bottom" || paginationPosition === "both") && <PaginationControls />}
     </div>
   );
 };

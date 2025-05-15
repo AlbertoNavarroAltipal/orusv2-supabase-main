@@ -17,6 +17,7 @@ interface HeaderProps {
   appliedFiltersCount?: number;
   // Props para nuevos botones si es necesario, ej: onConfigClick, onDeleteClick, onCreateUserClick
   // onRefreshClick: () => void; // Ya existe el botón, se puede añadir la prop si se maneja desde fuera
+  onTableConfigClick: () => void; // Para el modal de configuración de la tabla
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -24,6 +25,7 @@ const Header: React.FC<HeaderProps> = ({
   onSearchTermChange,
   onAdvancedFilterClick,
   appliedFiltersCount = 0,
+  onTableConfigClick, // Añadir la nueva prop
   // Aquí se podrían desestructurar las nuevas props para los manejadores de eventos
 }) => {
   return (
@@ -73,7 +75,7 @@ const Header: React.FC<HeaderProps> = ({
         </Button>
 
         {/* Botón Sliders/Configuración (Nuevo) */}
-        <Button variant="outline" size="icon" aria-label="Configurar vista">
+        <Button variant="outline" size="icon" aria-label="Configurar vista" onClick={onTableConfigClick}>
           <SlidersHorizontal className="h-4 w-4" />
         </Button>
 
