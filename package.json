@@ -41,7 +41,9 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "^2.49.4",
+    "@tanstack/match-sorter-utils": "^8.19.4",
     "@tanstack/react-table": "latest",
+    "@tanstack/react-virtual": "^3.13.8",
     "@tremor/react": "^3.18.7",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
@@ -69,6 +71,7 @@
     "zod": "latest"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.8.0",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^22",
     "@types/react": "^19",
