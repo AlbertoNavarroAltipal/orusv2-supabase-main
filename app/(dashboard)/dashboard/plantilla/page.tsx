@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, Suspense } from "react";
+import React, { useState, useEffect, useCallback, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "./components/header";
 import DataTable, { UserData } from "./components/data-table";
 import { fetchMockData } from "./data/mock-data";
-import { AdvancedFilterModal, type AdvancedFilterCondition } from "./components/modals";
+import AdvanceFilter, { type AdvanceFilterHandle, type AdvancedFilterCondition } from "./components/advance-filter";
 
 function PlantillaPageContent() {
   const router = useRouter();
+  const advanceFilterRef = useRef<AdvanceFilterHandle>(null);
   const searchParams = useSearchParams();
 
   // Inicializar estado desde URL o con valores por defecto
@@ -25,7 +26,6 @@ function PlantillaPageContent() {
     searchParams.get("search") || ""
   ); // Leer search de URL
   const [isLoading, setIsLoading] = useState(true);
-  const [isAdvancedFilterModalOpen, setIsAdvancedFilterModalOpen] = useState(false);
   const [appliedAdvancedFilters, setAppliedAdvancedFilters] = useState<AdvancedFilterCondition[]>([]);
 
   // Efecto para actualizar la URL cuando cambian los parámetros de paginación o búsqueda
@@ -126,37 +126,33 @@ function PlantillaPageContent() {
     setCurrentPage(page);
   }, []); // setCurrentPage es estable
 
-  const handleOpenAdvancedFilterModal = useCallback(() => {
-    setIsAdvancedFilterModalOpen(true);
-  }, []);
-
   const handleApplyAdvancedFilters = useCallback((filters: AdvancedFilterCondition[]) => {
     setAppliedAdvancedFilters(filters);
     setCurrentPage(1); // Reset page to 1 when new filters are applied
-    setIsAdvancedFilterModalOpen(false);
   }, []);
 
   const handleClearAdvancedFilters = useCallback(() => {
     setAppliedAdvancedFilters([]);
     setCurrentPage(1); // Reset page to 1 when filters are cleared
-    // setIsAdvancedFilterModalOpen(false); // Opcional: no cerrar el modal al limpiar, permitir al usuario añadir nuevos.
   }, []);
 
+  const openAdvanceFilterModal = () => {
+    advanceFilterRef.current?.openModal();
+  };
 
-  // Definición de columnas para el modal de filtros. Podría venir de una constante o de la config de la tabla.
-  const filterableColumns = [
-    { value: "nombreCompleto" as keyof UserData, label: "Nombre Completo" },
-    { value: "email" as keyof UserData, label: "Email" },
-    { value: "rol" as keyof UserData, label: "Rol" },
-  ];
-
+  // La definición de filterableColumns se movió a modals.tsx o podría pasarse a AdvanceFilter si es dinámica
+  // const filterableColumns = [
+  //   { value: "nombreCompleto" as keyof UserData, label: "Nombre Completo" },
+  //   { value: "email" as keyof UserData, label: "Email" },
+  //   { value: "rol" as keyof UserData, label: "Rol" },
+  // ];
 
   return (
     <div className="container mx-auto py-10">
       <Header
         searchTerm={searchTerm}
         onSearchTermChange={handleSearchTermChange}
-        onAdvancedFilterClick={handleOpenAdvancedFilterModal}
+        onAdvancedFilterClick={openAdvanceFilterModal}
       />
       <DataTable
         data={data}
@@ -170,13 +166,12 @@ function PlantillaPageContent() {
         onSortChange={handleSort}
         isLoading={isLoading}
       />
-      <AdvancedFilterModal
-        isOpen={isAdvancedFilterModalOpen}
-        onClose={() => setIsAdvancedFilterModalOpen(false)}
-        onApplyFilters={handleApplyAdvancedFilters}
-        onClearFilters={handleClearAdvancedFilters}
-        initialFilters={appliedAdvancedFilters}
-        // columns={filterableColumns} // Si se decide pasar columnas dinámicamente al modal
+      <AdvanceFilter
+        ref={advanceFilterRef}
+        initialAppliedFilters={appliedAdvancedFilters}
+        onFiltersApplied={handleApplyAdvancedFilters}
+        onFiltersCleared={handleClearAdvancedFilters}
+        // filterableColumns={filterableColumns} // Si se decide pasar columnas dinámicamente
       />
     </div>
   );

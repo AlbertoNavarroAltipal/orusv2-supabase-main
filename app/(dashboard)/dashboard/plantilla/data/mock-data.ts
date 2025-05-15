@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import type { UserData } from "../components/data-table";
-import type { AdvancedFilterCondition } from "../components/modals";
+import type { AdvancedFilterCondition } from "../components/advance-filter";
 
 const createRandomUser = (): UserData => {
   return {
