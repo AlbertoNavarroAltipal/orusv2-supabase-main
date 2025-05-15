@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PlusCircle, Trash2, X } from "lucide-react";
+import { PlusCircle, Trash2, X, Loader2, FilterX } from "lucide-react";
 import type { UserData } from "./data-table"; // Asegúrate que la ruta sea correcta
 
 // Definición de las columnas disponibles para filtrar (basado en UserData y DataTable)
@@ -83,24 +83,15 @@ const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
 }) => {
   const [filters, setFilters] =
     useState<AdvancedFilterCondition[]>(initialFilters);
+  const [isApplyingFilters, setIsApplyingFilters] = useState(false);
 
   useEffect(() => {
-    // Si no hay filtros iniciales o se borran, asegurar al menos una fila vacía
-    if (initialFilters.length === 0 && filters.length === 0) {
-      setFilters([
-        {
-          id: Date.now().toString(),
-          field: "",
-          operator: "contains",
-          value: "",
-        },
-      ]);
-    } else {
-      setFilters(initialFilters);
-    }
+    // Si se proporcionan initialFilters, usarlos. Sino, empezar con un array vacío.
+    setFilters(initialFilters.length > 0 ? [...initialFilters] : []);
   }, [initialFilters]);
 
   const handleAddFilter = () => {
+    if (isApplyingFilters) return;
     setFilters([
       ...filters,
       {
@@ -108,18 +99,18 @@ const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
         field: "",
         operator: "contains",
         value: "",
-        logicalOperator: filters.length > 0 ? "AND" : undefined, // Por defecto AND si no es el primero
+        logicalOperator: filters.length > 0 ? "AND" : undefined,
       },
     ]);
   };
 
   const handleRemoveFilter = (id: string) => {
+    if (isApplyingFilters) return;
     const newFilters = filters.filter((filter) => filter.id !== id);
-    // Si se elimina el primer filtro y hay más, quitar el operador lógico del nuevo primer filtro
     if (newFilters.length > 0 && filters.findIndex((f) => f.id === id) === 0) {
       delete newFilters[0].logicalOperator;
     }
-    setFilters(newFilters.length > 0 ? newFilters : []); // Dejar vacío si no hay filtros
+    setFilters(newFilters.length > 0 ? newFilters : []);
   };
 
   const handleFilterChange = (
@@ -127,6 +118,7 @@ const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
     field: keyof AdvancedFilterCondition,
     value: any
   ) => {
+    if (isApplyingFilters) return;
     setFilters(
       filters.map((filter) =>
         filter.id === id ? { ...filter, [field]: value } : filter
@@ -134,144 +126,221 @@ const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
     );
   };
 
-  const handleApply = () => {
-    // Filtrar condiciones incompletas antes de aplicar
+  const handleApply = async () => {
+    setIsApplyingFilters(true);
     const validFilters = filters.filter(
       (f) => f.field && f.operator && f.value.trim() !== ""
     );
-    onApplyFilters(validFilters);
-    onClose();
+    
+    try {
+      // Asumimos que onApplyFilters podría ser una promesa si la página lo implementa así.
+      // Si no, se ejecutará sincrónicamente.
+      await Promise.resolve(onApplyFilters(validFilters));
+    } catch (error) {
+      console.error("Error applying filters:", error);
+      // Opcional: manejar el error en la UI, ej. mostrar un toast
+    } finally {
+      // Incluso si onApplyFilters no es una promesa real, el Promise.resolve asegura que el bloque finally se ejecute después.
+      // El cierre del modal y el reseteo del estado de carga se hacen después de que onApplyFilters haya tenido la oportunidad de ejecutarse.
+      // Si onApplyFilters es síncrono, esto ocurrirá inmediatamente después.
+      // Si fuera asíncrono (y devolviera una promesa), esperaría.
+      setIsApplyingFilters(false);
+      onClose();
+    }
   };
 
   const handleClear = () => {
-    setFilters([
-      {
-        id: Date.now().toString(),
-        field: "",
-        operator: "contains",
-        value: "",
-      },
-    ]);
-    onClearFilters(); // Llama a la prop para que la página también limpie
-    // onClose(); // Opcional: cerrar modal al limpiar
+    if (isApplyingFilters) return;
+    setFilters([]); // Vaciar completamente los filtros
+    onClearFilters(); // Notificar a la página que los filtros se limpiaron
   };
+  
+  const handleDialogClose = () => {
+    if (isApplyingFilters) return;
+    onClose();
+  }
 
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Filtros Avanzados</DialogTitle>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleDialogClose()}>
+      <DialogContent
+        className="sm:max-w-2xl"
+        onInteractOutside={(e) => {
+          if (isApplyingFilters) {
+            e.preventDefault();
+          }
+        }}
+      >
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-xl font-semibold">Constructor de Filtros Avanzados</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            Cree condiciones de filtro complejas para refinar la lista de usuarios. Las condiciones se aplican secuencialmente según el operador Y/O.
+          </p>
           <DialogClose asChild>
             <Button
               variant="ghost"
               size="icon"
               className="absolute right-4 top-4"
+              disabled={isApplyingFilters}
+              onClick={handleDialogClose}
             >
               <X className="h-4 w-4" />
             </Button>
           </DialogClose>
         </DialogHeader>
 
-        <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
-          {filters.map((filter, index) => (
-            <div key={filter.id} className="space-y-2">
-              {index > 0 && (
-                <div className="flex justify-center mb-2">
-                  <Select
-                    value={filter.logicalOperator}
-                    onValueChange={(value: "AND" | "OR") =>
-                      handleFilterChange(filter.id, "logicalOperator", value)
-                    }
-                  >
-                    <SelectTrigger className="w-[100px]">
-                      <SelectValue placeholder="Operador" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {logicalOperators.map((op) => (
-                        <SelectItem key={op.value} value={op.value}>
-                          {op.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-end">
-                <Select
-                  value={filter.field}
-                  onValueChange={(value: keyof UserData | "") =>
-                    handleFilterChange(filter.id, "field", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar columna" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableColumns.map((col) => (
-                      <SelectItem key={col.value} value={col.value}>
-                        {col.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={filter.operator}
-                  onValueChange={(value) =>
-                    handleFilterChange(filter.id, "operator", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar operador" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filterOperators.map((op) => (
-                      <SelectItem key={op.value} value={op.value}>
-                        {op.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Input
-                  placeholder="Valor"
-                  value={filter.value}
-                  onChange={(e) =>
-                    handleFilterChange(filter.id, "value", e.target.value)
-                  }
-                />
-              </div>
-              {filters.length > 0 && ( // Mostrar botón de eliminar solo si hay filtros
-                <div className="flex justify-end mt-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveFilter(filter.id)}
-                    className="text-destructive hover:text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    <Trash2 className="mr-1 h-4 w-4" /> Eliminar
-                  </Button>
-                </div>
-              )}
+        <div className="py-2 max-h-[55vh] overflow-y-auto pr-3">
+          {filters.length === 0 ? (
+            <div className="flex flex-col items-center justify-center text-center text-muted-foreground py-10">
+              <FilterX className="h-16 w-16 mb-4 text-gray-400" />
+              <p className="text-lg font-medium mb-1">No hay condiciones de filtro</p>
+              <p className="text-sm">Haga clic en "Añadir condición" para empezar a construir sus filtros.</p>
             </div>
-          ))}
+          ) : (
+            <div className="space-y-4">
+              {filters.map((filter, index) => (
+                <div key={filter.id} className="space-y-3">
+                  {index > 0 && (
+                    <div className="flex items-center ml-1 mb-2"> {/* Alineado a la izquierda */}
+                      <Select
+                        value={filter.logicalOperator}
+                        onValueChange={(value: "AND" | "OR") =>
+                          handleFilterChange(filter.id, "logicalOperator", value)
+                        }
+                        disabled={isApplyingFilters}
+                      >
+                        <SelectTrigger className="w-[80px] text-xs h-8"> {/* Más pequeño */}
+                          <SelectValue placeholder="Y/O" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {logicalOperators.map((op) => (
+                            <SelectItem key={op.value} value={op.value} className="text-xs">
+                              {op.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  <div className="border rounded-md p-4 space-y-3 bg-card shadow-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 items-start">
+                      <div>
+                        <label htmlFor={`field-${filter.id}`} className="block text-xs font-medium text-muted-foreground mb-1">Campo</label>
+                        <Select
+                          value={filter.field}
+                          onValueChange={(value: keyof UserData | "") =>
+                            handleFilterChange(filter.id, "field", value)
+                          }
+                          disabled={isApplyingFilters}
+                        >
+                          <SelectTrigger id={`field-${filter.id}`}>
+                            <SelectValue placeholder="Seleccionar" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableColumns.map((col) => (
+                              <SelectItem key={col.value} value={col.value}>
+                                {col.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label htmlFor={`operator-${filter.id}`} className="block text-xs font-medium text-muted-foreground mb-1">Operador</label>
+                        <Select
+                          value={filter.operator}
+                          onValueChange={(value) =>
+                            handleFilterChange(filter.id, "operator", value)
+                          }
+                          disabled={isApplyingFilters}
+                        >
+                          <SelectTrigger id={`operator-${filter.id}`}>
+                            <SelectValue placeholder="Seleccionar" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filterOperators.map((op) => (
+                              <SelectItem key={op.value} value={op.value}>
+                                {op.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <label htmlFor={`value-${filter.id}`} className="block text-xs font-medium text-muted-foreground mb-1">Valor</label>
+                        <Input
+                          id={`value-${filter.id}`}
+                          placeholder="Escribir valor..."
+                          value={filter.value}
+                          onChange={(e) =>
+                            handleFilterChange(filter.id, "value", e.target.value)
+                          }
+                          disabled={isApplyingFilters}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                       {/* El botón de eliminar siempre debe estar si la fila existe, no depende de filters.length > 0 aquí */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveFilter(filter.id)}
+                          className="text-destructive hover:text-destructive-foreground hover:bg-destructive/10 h-8 w-8"
+                          disabled={isApplyingFilters}
+                          aria-label="Eliminar condición"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-
-        <Button
-          variant="outline"
-          onClick={handleAddFilter}
-          className="w-full sm:w-auto"
-        >
-          <PlusCircle className="mr-2 h-4 w-4" /> Añadir Filtro
-        </Button>
-
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={handleClear}>
-            Borrar Filtros
-          </Button>
-          <Button onClick={handleApply}>Aplicar Filtros</Button>
+        
+        <DialogFooter className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center w-full gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              onClick={handleClear}
+              disabled={isApplyingFilters || filters.length === 0}
+              className="w-full sm:w-auto"
+            >
+              Borrar Todos
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleAddFilter}
+              disabled={isApplyingFilters}
+              className="w-full sm:w-auto"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" /> Añadir condición
+            </Button>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              variant="ghost" // Cambiado a ghost o outline según preferencia para "Cancelar"
+              onClick={handleDialogClose}
+              disabled={isApplyingFilters}
+              className="w-full sm:w-auto"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleApply}
+              disabled={isApplyingFilters || filters.length === 0 || !filters.some(f => f.field && f.operator && f.value.trim() !== "")}
+              className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90" // Estilo de botón primario
+            >
+              {isApplyingFilters ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              {isApplyingFilters ? "Aplicando..." : "Aplicar Filtros"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
