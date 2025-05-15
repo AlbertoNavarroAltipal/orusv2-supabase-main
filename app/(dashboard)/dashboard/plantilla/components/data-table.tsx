@@ -40,6 +40,12 @@ interface DataTableProps {
   enableSorting?: boolean;
   enableRowSelection?: boolean;
   tableDensity?: "compact" | "normal" | "spacious";
+  showGridLines?: boolean;
+  stripedRows?: boolean;
+  hoverHighlight?: boolean;
+  stickyHeader?: boolean;
+  tableFontSize?: "xs" | "sm" | "base";
+  cellTextAlignment?: "left" | "center" | "right";
 }
 
 const DataTableComponent: React.FC<DataTableProps> = ({
@@ -58,6 +64,12 @@ const DataTableComponent: React.FC<DataTableProps> = ({
   enableSorting = true,
   enableRowSelection = true,
   tableDensity = "normal",
+  showGridLines = true,
+  stripedRows = false,
+  hoverHighlight = true,
+  stickyHeader = true,
+  tableFontSize = "sm",
+  cellTextAlignment = "left",
 }) => {
   const [tableData, setTableData] = useState<UserData[]>([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -118,6 +130,45 @@ const DataTableComponent: React.FC<DataTableProps> = ({
   };
   const currentDensityClass = densityClasses[tableDensity];
 
+  const fontSizeClasses = {
+    xs: "text-xs",
+    sm: "text-sm",
+    base: "text-base",
+  };
+  const currentFontSizeClass = fontSizeClasses[tableFontSize];
+
+  const textAlignClasses = {
+    left: "text-left",
+    center: "text-center",
+    right: "text-right",
+  };
+  const currentTextAlignClass = textAlignClasses[cellTextAlignment];
+
+  const tableClasses = React.useMemo(() => {
+    let classes = "";
+    if (!showGridLines) {
+      classes += " border-0";
+    }
+    classes += ` ${currentFontSizeClass}`;
+    return classes;
+  }, [showGridLines, currentFontSizeClass]);
+
+  const rowClasses = (rowIndex: number) => {
+    let classes = "";
+    if (hoverHighlight) {
+      classes += " hover:bg-muted/50";
+    }
+    if (stripedRows && rowIndex % 2 !== 0) { // 0-indexed, so odd index is even row visually
+      classes += " bg-muted/10"; // Un color más sutil para striped
+    }
+    if (!showGridLines) {
+        // Podríamos necesitar quitar bordes de las filas si la clase de Table no es suficiente
+        // classes += " border-b-0";
+    }
+    return classes;
+  };
+
+
   const PaginationControls = () => (
     <div className="flex items-center justify-between p-4 border-t">
       <div className="text-sm text-muted-foreground">
@@ -147,11 +198,13 @@ const DataTableComponent: React.FC<DataTableProps> = ({
     <div className="bg-white">
       {(paginationPosition === "top" || paginationPosition === "both") && <PaginationControls />}
       <div className="overflow-x-auto"> {/* Contenedor para scroll horizontal si es necesario y para el sticky header */}
-        <Table>
-          <TableHeader className="sticky top-0 z-10 bg-white">{/* Header pegajoso */}
-            <TableRow>
+        <Table className={tableClasses}>
+          <TableHeader
+            className={`${stickyHeader ? 'sticky top-0 z-10' : ''} bg-white ${!showGridLines ? 'border-b-0' : ''}`}
+          >
+            <TableRow className={!showGridLines ? 'border-b-0' : ''}>
               {enableRowSelection && (
-                <TableHead className={`w-[40px] ${currentDensityClass}`}>
+                <TableHead className={`w-[40px] ${currentDensityClass} ${!showGridLines ? 'border-0' : ''} ${currentTextAlignClass}`}>
                   <Checkbox
                     checked={selectAll}
                     onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
@@ -160,7 +213,7 @@ const DataTableComponent: React.FC<DataTableProps> = ({
                 </TableHead>
               )}
               {displayedColumns.map((column) => (
-                <TableHead key={column.accessorKey} className={currentDensityClass}>
+                <TableHead key={column.accessorKey} className={`${currentDensityClass} ${!showGridLines ? 'border-0' : ''} ${currentTextAlignClass}`}>
                   {enableSorting ? (
                     <Button variant="ghost" onClick={() => onSortChange(column.accessorKey as keyof UserData)}>
                       {column.header}
@@ -177,27 +230,27 @@ const DataTableComponent: React.FC<DataTableProps> = ({
               ))}
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className={!showGridLines ? 'divide-y-0' : ''}>
             {isLoading ? (
               Array.from({ length: itemsPerPage }).map((_, index) => (
-                <TableRow key={`skeleton-${index}`}>
+                <TableRow key={`skeleton-${index}`} className={`${rowClasses(index)} ${!showGridLines ? 'border-b-0' : ''}`}>
                   {enableRowSelection && (
-                    <TableCell className={`w-[40px] ${currentDensityClass}`}>
+                    <TableCell className={`w-[40px] ${currentDensityClass} ${!showGridLines ? 'border-0' : ''} ${currentTextAlignClass}`}>
                       <Skeleton className="h-4 w-4" />
                     </TableCell>
                   )}
                   {displayedColumns.map((column) => (
-                    <TableCell key={column.accessorKey} className={currentDensityClass}>
+                    <TableCell key={column.accessorKey} className={`${currentDensityClass} ${!showGridLines ? 'border-0' : ''} ${currentTextAlignClass}`}>
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : tableData.length > 0 ? (
-              tableData.map((row) => (
-                <TableRow key={row.id} data-state={row.selected && "selected"}>
+              tableData.map((row, rowIndex) => (
+                <TableRow key={row.id} data-state={row.selected && "selected"} className={`${rowClasses(rowIndex)} ${!showGridLines ? 'border-b-0' : ''}`}>
                   {enableRowSelection && (
-                    <TableCell className={currentDensityClass}>
+                    <TableCell className={`${currentDensityClass} ${!showGridLines ? 'border-0' : ''} ${currentTextAlignClass}`}>
                       <Checkbox
                         checked={!!row.selected} // Asegurar que sea booleano
                         onCheckedChange={(checked) => handleRowSelect(row.id, checked as boolean)}
@@ -206,15 +259,18 @@ const DataTableComponent: React.FC<DataTableProps> = ({
                   )}
                   {/* Renderizar celdas dinámicamente según displayedColumns */}
                   {displayedColumns.map(column => (
-                    <TableCell key={column.accessorKey} className={currentDensityClass}>
+                    <TableCell key={column.accessorKey} className={`${currentDensityClass} ${!showGridLines ? 'border-0' : ''} ${currentTextAlignClass}`}>
                       {row[column.accessorKey as keyof UserData]}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell colSpan={displayedColumns.length + (enableRowSelection ? 1 : 0)} className={`h-24 text-center ${currentDensityClass}`}>
+              <TableRow className={!showGridLines ? 'border-b-0' : ''}>
+                <TableCell
+                  colSpan={displayedColumns.length + (enableRowSelection ? 1 : 0)}
+                  className={`h-24 text-center ${currentDensityClass} ${!showGridLines ? 'border-0' : ''}`}
+                >
                   No hay resultados.
                 </TableCell>
               </TableRow>

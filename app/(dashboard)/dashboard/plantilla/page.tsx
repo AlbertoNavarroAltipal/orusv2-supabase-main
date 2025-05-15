@@ -60,6 +60,17 @@ function PlantillaPageContent() {
   const [tableDensity, setTableDensity] = useState<
     "normal" | "compact" | "spacious"
   >("normal");
+  const [showGridLines, setShowGridLines] = useState(true);
+  const [stripedRows, setStripedRows] = useState(false);
+  const [hoverHighlight, setHoverHighlight] = useState(true);
+  // Nuevos estados para las nuevas preferencias
+  const [stickyHeader, setStickyHeader] = useState(true);
+  const [tableFontSize, setTableFontSize] = useState<"xs" | "sm" | "base">(
+    "sm"
+  );
+  const [cellTextAlignment, setCellTextAlignment] = useState<
+    "left" | "center" | "right"
+  >("left");
 
   // Efecto para actualizar la URL cuando cambian los parámetros de paginación o búsqueda
   useEffect(() => {
@@ -224,6 +235,13 @@ function PlantillaPageContent() {
         enableSorting={enableSorting}
         enableRowSelection={enableRowSelection}
         tableDensity={tableDensity}
+        showGridLines={showGridLines}
+        stripedRows={stripedRows}
+        hoverHighlight={hoverHighlight}
+        // Pasar nuevas props a DataTable
+        stickyHeader={stickyHeader}
+        tableFontSize={tableFontSize}
+        cellTextAlignment={cellTextAlignment}
       />
       <AdvanceFilter
         ref={advanceFilterRef}
@@ -248,6 +266,19 @@ function PlantillaPageContent() {
         onEnableRowSelectionChange={setEnableRowSelection}
         tableDensity={tableDensity}
         onTableDensityChange={setTableDensity}
+        showGridLines={showGridLines}
+        onShowGridLinesChange={setShowGridLines}
+        stripedRows={stripedRows}
+        onStripedRowsChange={setStripedRows}
+        hoverHighlight={hoverHighlight}
+        onHoverHighlightChange={setHoverHighlight}
+        // Pasar nuevas props a TableConfigModal
+        stickyHeader={stickyHeader}
+        onStickyHeaderChange={setStickyHeader}
+        tableFontSize={tableFontSize}
+        onTableFontSizeChange={setTableFontSize}
+        cellTextAlignment={cellTextAlignment}
+        onCellTextAlignmentChange={setCellTextAlignment}
       />
     </div>
   );
