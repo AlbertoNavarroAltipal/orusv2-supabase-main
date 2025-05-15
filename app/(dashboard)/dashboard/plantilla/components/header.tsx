@@ -1,18 +1,20 @@
 import React, { memo } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Search, Filter, RefreshCw, UploadCloud, DownloadCloud, PlusCircle } from 'lucide-react';
 
 interface HeaderProps {
   searchTerm: string;
   onSearchTermChange: (term: string) => void;
-  onAdvancedFilterClick: () => void; // Prop para manejar el clic en filtros avanzados
+  onAdvancedFilterClick: () => void;
+  appliedFiltersCount?: number; // Nueva prop, opcional por si acaso
   // Aquí se podrían añadir más props para los otros botones si se necesita pasarles funcionalidad desde la página
   // onRefreshClick: () => void;
   // etc.
 }
 
-const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchTermChange, onAdvancedFilterClick }) => {
+const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchTermChange, onAdvancedFilterClick, appliedFiltersCount = 0 }) => {
   return (
     <div className="mb-6">
       <div className="flex flex-col md:flex-row justify-between md:items-center mb-4">
@@ -44,8 +46,16 @@ const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchTermChange, onAdvan
           />
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" onClick={onAdvancedFilterClick}>
+          <Button variant="outline" onClick={onAdvancedFilterClick} className="relative">
             <Filter className="mr-2 h-4 w-4" /> Filtros Avanzados
+            {appliedFiltersCount > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs"
+              >
+                {appliedFiltersCount}
+              </Badge>
+            )}
           </Button>
           <Button variant="outline" size="icon">
             <RefreshCw className="h-4 w-4" />

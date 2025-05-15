@@ -1,11 +1,20 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, Suspense, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  Suspense,
+  useRef,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "./components/header";
 import DataTable, { UserData } from "./components/data-table";
 import { fetchMockData } from "./data/mock-data";
-import AdvanceFilter, { type AdvanceFilterHandle, type AdvancedFilterCondition } from "./components/advance-filter";
+import AdvanceFilter, {
+  type AdvanceFilterHandle,
+  type AdvancedFilterCondition,
+} from "./components/advance-filter";
 
 function PlantillaPageContent() {
   const router = useRouter();
@@ -26,7 +35,9 @@ function PlantillaPageContent() {
     searchParams.get("search") || ""
   ); // Leer search de URL
   const [isLoading, setIsLoading] = useState(true);
-  const [appliedAdvancedFilters, setAppliedAdvancedFilters] = useState<AdvancedFilterCondition[]>([]);
+  const [appliedAdvancedFilters, setAppliedAdvancedFilters] = useState<
+    AdvancedFilterCondition[]
+  >([]);
 
   // Efecto para actualizar la URL cuando cambian los parámetros de paginación o búsqueda
   useEffect(() => {
@@ -81,7 +92,14 @@ function PlantillaPageContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, itemsPerPage, sortBy, sortOrder, searchTerm, appliedAdvancedFilters]); // No incluir router o searchParams aquí para evitar bucles
+  }, [
+    currentPage,
+    itemsPerPage,
+    sortBy,
+    sortOrder,
+    searchTerm,
+    appliedAdvancedFilters,
+  ]); // No incluir router o searchParams aquí para evitar bucles
 
   useEffect(() => {
     loadData();
@@ -126,10 +144,13 @@ function PlantillaPageContent() {
     setCurrentPage(page);
   }, []); // setCurrentPage es estable
 
-  const handleApplyAdvancedFilters = useCallback((filters: AdvancedFilterCondition[]) => {
-    setAppliedAdvancedFilters(filters);
-    setCurrentPage(1); // Reset page to 1 when new filters are applied
-  }, []);
+  const handleApplyAdvancedFilters = useCallback(
+    (filters: AdvancedFilterCondition[]) => {
+      setAppliedAdvancedFilters(filters);
+      setCurrentPage(1); // Reset page to 1 when new filters are applied
+    },
+    []
+  );
 
   const handleClearAdvancedFilters = useCallback(() => {
     setAppliedAdvancedFilters([]);
@@ -154,6 +175,7 @@ function PlantillaPageContent() {
         searchTerm={searchTerm}
         onSearchTermChange={handleSearchTermChange}
         onAdvancedFilterClick={openAdvanceFilterModal}
+        appliedFiltersCount={appliedAdvancedFilters.length}
       />
       <DataTable
         data={data}
