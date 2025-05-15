@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton"; // Importar Skeleton
 import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 // Definición del tipo para los datos de usuario, basado en la imagen
@@ -33,6 +34,7 @@ interface DataTableProps {
   sortBy: keyof UserData | null;
   sortOrder: 'asc' | 'desc';
   onSortChange: (columnKey: keyof UserData) => void;
+  isLoading?: boolean; // Añadir isLoading como prop opcional
   // Props para filtros, selección de columnas se agregarán aquí
 }
 
@@ -46,6 +48,7 @@ const DataTableComponent: React.FC<DataTableProps> = ({
   sortBy,
   sortOrder,
   onSortChange,
+  isLoading = false, // Valor por defecto para isLoading
 }) => {
   const [tableData, setTableData] = useState<UserData[]>([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -121,7 +124,20 @@ const DataTableComponent: React.FC<DataTableProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tableData.length > 0 ? (
+          {isLoading ? (
+            Array.from({ length: itemsPerPage }).map((_, index) => (
+              <TableRow key={`skeleton-${index}`}>
+                <TableCell className="w-[40px]">
+                  <Skeleton className="h-4 w-4" />
+                </TableCell>
+                {columns.map((column) => (
+                  <TableCell key={column.accessorKey}>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : tableData.length > 0 ? (
             tableData.map((row) => (
               <TableRow key={row.id} data-state={row.selected && "selected"}>
                 <TableCell>
