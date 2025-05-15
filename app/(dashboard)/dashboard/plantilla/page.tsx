@@ -140,12 +140,13 @@ function PlantillaPageContent() {
     advanceFilterRef.current?.openModal();
   };
 
-  // La definición de filterableColumns se movió a modals.tsx o podría pasarse a AdvanceFilter si es dinámica
-  // const filterableColumns = [
-  //   { value: "nombreCompleto" as keyof UserData, label: "Nombre Completo" },
-  //   { value: "email" as keyof UserData, label: "Email" },
-  //   { value: "rol" as keyof UserData, label: "Rol" },
-  // ];
+  const filterableColumns: { value: keyof UserData; label: string }[] = [
+    { value: "nombreCompleto", label: "Nombre Completo" },
+    { value: "email", label: "Email" },
+    { value: "rol", label: "Rol" },
+    // Considerar añadir más columnas si es necesario, ej:
+    // { value: "ultimoAcceso", label: "Último Acceso" }, // Requeriría manejo de fechas
+  ];
 
   return (
     <div className="container mx-auto py-10">
@@ -171,7 +172,7 @@ function PlantillaPageContent() {
         initialAppliedFilters={appliedAdvancedFilters}
         onFiltersApplied={handleApplyAdvancedFilters}
         onFiltersCleared={handleClearAdvancedFilters}
-        // filterableColumns={filterableColumns} // Si se decide pasar columnas dinámicamente
+        filterableColumns={filterableColumns}
       />
     </div>
   );

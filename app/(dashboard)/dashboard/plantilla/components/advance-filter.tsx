@@ -27,15 +27,6 @@ import {
 import { PlusCircle, Trash2, X, Loader2, FilterX } from "lucide-react";
 import type { UserData } from "./data-table"; // Asegúrate que la ruta sea correcta
 
-// Definición de las columnas disponibles para filtrar (basado en UserData y DataTable)
-// Esto podría pasarse como prop o definirse de forma más dinámica
-const availableColumns: { value: keyof UserData; label: string }[] = [
-  { value: "nombreCompleto", label: "Nombre Completo" },
-  { value: "email", label: "Email" },
-  { value: "rol", label: "Rol" },
-  //   { value: "ultimoAcceso", label: "Último Acceso" }, // Fechas pueden requerir un date picker
-];
-
 // Operadores de filtro
 const filterOperators = [
   { value: "contains", label: "Contiene" },
@@ -44,7 +35,9 @@ const filterOperators = [
   { value: "not_equals", label: "No es igual a" },
   { value: "starts_with", label: "Comienza con" },
   { value: "ends_with", label: "Termina con" },
-  // Para numéricos/fechas (requeriría validación/manejo especial)
+  { value: "is_empty", label: "Está vacío" },
+  { value: "is_not_empty", label: "No está vacío" },
+  // TODO: Considerar operadores para números/fechas si las columnas lo soportan
   // { value: "gt", label: "Mayor que" },
   // { value: "lt", label: "Menor que" },
   // { value: "gte", label: "Mayor o igual que" },
@@ -70,8 +63,7 @@ interface AdvancedFilterModalProps {
   onApplyFilters: (filters: AdvancedFilterCondition[]) => void;
   onClearFilters: () => void;
   initialFilters?: AdvancedFilterCondition[];
-  // columns prop podría usarse si se quiere pasar dinámicamente
-  // columns: { value: keyof UserData; label: string }[];
+  columns: { value: keyof UserData; label: string }[]; // Hecho obligatorio
 }
 
 const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
@@ -80,6 +72,7 @@ const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
   onApplyFilters,
   onClearFilters,
   initialFilters = [],
+  columns, // Recibir columnas como prop
 }) => {
   const [filters, setFilters] =
     useState<AdvancedFilterCondition[]>(initialFilters);
@@ -128,8 +121,10 @@ const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
 
   const handleApply = async () => {
     setIsApplyingFilters(true);
-    const validFilters = filters.filter(
-      (f) => f.field && f.operator && f.value.trim() !== ""
+    const validFilters = filters.filter(f =>
+      f.field &&
+      f.operator &&
+      ( (f.operator === 'is_empty' || f.operator === 'is_not_empty') ? true : f.value.trim() !== "" )
     );
     
     try {
@@ -238,7 +233,7 @@ const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
                             <SelectValue placeholder="Seleccionar" />
                           </SelectTrigger>
                           <SelectContent>
-                            {availableColumns.map((col) => (
+                            {columns.map((col) => ( // Usar props.columns
                               <SelectItem key={col.value} value={col.value}>
                                 {col.label}
                               </SelectItem>
@@ -246,14 +241,18 @@ const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
                           </SelectContent>
                         </Select>
                       </div>
-
+    
                       <div>
                         <label htmlFor={`operator-${filter.id}`} className="block text-xs font-medium text-muted-foreground mb-1">Operador</label>
                         <Select
                           value={filter.operator}
-                          onValueChange={(value) =>
-                            handleFilterChange(filter.id, "operator", value)
-                          }
+                          onValueChange={(value) => {
+                            handleFilterChange(filter.id, "operator", value);
+                            // Limpiar valor si el nuevo operador es 'is_empty' o 'is_not_empty'
+                            if (value === 'is_empty' || value === 'is_not_empty') {
+                              handleFilterChange(filter.id, "value", "");
+                            }
+                          }}
                           disabled={isApplyingFilters}
                         >
                           <SelectTrigger id={`operator-${filter.id}`}>
@@ -278,7 +277,7 @@ const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
                           onChange={(e) =>
                             handleFilterChange(filter.id, "value", e.target.value)
                           }
-                          disabled={isApplyingFilters}
+                          disabled={isApplyingFilters || filter.operator === 'is_empty' || filter.operator === 'is_not_empty'}
                         />
                       </div>
                     </div>
@@ -332,7 +331,7 @@ const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
             </Button>
             <Button
               onClick={handleApply}
-              disabled={isApplyingFilters || filters.length === 0 || !filters.some(f => f.field && f.operator && f.value.trim() !== "")}
+              disabled={isApplyingFilters || filters.length === 0 || !filters.some(f => f.field && f.operator && ((f.operator === 'is_empty' || f.operator === 'is_not_empty') ? true : f.value.trim() !== ""))}
               className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90" // Estilo de botón primario
             >
               {isApplyingFilters ? (
@@ -355,8 +354,7 @@ interface AdvanceFilterProps {
   onFiltersApplied: (filters: AdvancedFilterCondition[]) => void;
   onFiltersCleared: () => void;
   initialAppliedFilters?: AdvancedFilterCondition[];
-  // Podrías pasar las columnas aquí si fueran dinámicas desde la página
-  // filterableColumns: { value: keyof UserData; label: string }[];
+  filterableColumns: { value: keyof UserData; label: string }[]; // Hecho obligatorio
 }
 
 const AdvanceFilter = forwardRef<AdvanceFilterHandle, AdvanceFilterProps>(
@@ -365,7 +363,7 @@ const AdvanceFilter = forwardRef<AdvanceFilterHandle, AdvanceFilterProps>(
       onFiltersApplied,
       onFiltersCleared,
       initialAppliedFilters = [],
-      // filterableColumns
+      filterableColumns, // Recibir columnas filtrables
     },
     ref
   ) => {
@@ -474,7 +472,7 @@ const AdvanceFilter = forwardRef<AdvanceFilterHandle, AdvanceFilterProps>(
           onApplyFilters={handleApplyAdvancedFilters}
           onClearFilters={handleClearAdvancedFilters}
           initialFilters={initialAppliedFilters}
-          // columns={filterableColumns} // Si se pasan dinámicamente
+          columns={filterableColumns} // Pasar columnas al modal
         />
         {/* Este componente necesita una forma de ser "activado" desde el Header.
           Podemos pasar `setIsAdvancedFilterModalOpen` a la página, y la página al Header.
