@@ -11,6 +11,8 @@ import {
 } from "lucide-react"; // Eliminados UploadCloud, DownloadCloud. Añadido SlidersHorizontal
 
 interface HeaderProps {
+  title: string; // Nueva prop para el título
+  description: string; // Nueva prop para la descripción
   searchTerm: string;
   onSearchTermChange: (term: string) => void;
   onAdvancedFilterClick: () => void;
@@ -21,21 +23,21 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({
+  title, // Usar la nueva prop
+  description, // Usar la nueva prop
   searchTerm,
   onSearchTermChange,
   onAdvancedFilterClick,
   appliedFiltersCount = 0,
-  onTableConfigClick, // Añadir la nueva prop
+  onTableConfigClick,
   // Aquí se podrían desestructurar las nuevas props para los manejadores de eventos
 }) => {
   return (
     <div className="bg-white pl-6 pr-6 pt-3 pb-3 border-b mb-0 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 w-full sticky top-0 z-50">
       {/* Sección Izquierda: Título y Subtítulo */}
       <div>
-        <h1 className="text-2xl font-bold">Usuarios</h1>
-        <p className="text-sm text-muted-foreground">
-          Gestione los usuarios del sistema y sus accesos.
-        </p>
+        <h1 className="text-2xl font-bold">{title}</h1>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
 
       {/* Sección Derecha: Controles */}

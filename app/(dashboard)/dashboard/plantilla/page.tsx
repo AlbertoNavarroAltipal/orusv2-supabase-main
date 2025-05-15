@@ -10,7 +10,8 @@ import React, {
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "./components/header";
 import DataTable, { UserData } from "./components/data-table";
-import { fetchMockData } from "./data/mock-data";
+// fetchMockData ya no se importa directamente, se usa desde plantillaConfig
+import { plantillaConfig } from "./config"; // Importar la configuración
 import AdvanceFilter, {
   type AdvanceFilterHandle,
   type AdvancedFilterCondition,
@@ -41,16 +42,11 @@ function PlantillaPageContent() {
   >([]);
   const [isTableConfigModalOpen, setIsTableConfigModalOpen] = useState(false);
 
-  // Definición de todas las columnas posibles y las visibles por defecto
-  const allTableColumns: { key: keyof UserData; header: string }[] = [
-    { key: "nombreCompleto", header: "Nombre Completo" },
-    { key: "email", header: "Email" },
-    { key: "rol", header: "Rol" },
-    { key: "ultimoAcceso", header: "Último Acceso" },
-    // Añadir 'id' o cualquier otra columna si se quiere poder mostrar/ocultar
-  ];
+  // Definición de todas las columnas posibles y las visibles por defecto (ahora desde config)
+  const { allTableColumns, filterableColumns: configFilterableColumns } =
+    plantillaConfig;
   const [visibleColumns, setVisibleColumns] = useState<(keyof UserData)[]>(
-    allTableColumns.map((col) => col.key) // Inicialmente todas visibles
+    allTableColumns.map((col) => col.accessorKey as keyof UserData) // Corregido a accessorKey
   );
   const [tablePaginationPosition, setTablePaginationPosition] = useState<
     "top" | "bottom" | "both" | "none"
@@ -107,7 +103,8 @@ function PlantillaPageContent() {
       Number.isFinite(itemsPerPage) && itemsPerPage > 0 ? itemsPerPage : 10;
 
     try {
-      const result = await fetchMockData({
+      const result = await plantillaConfig.fetchData({
+        // Usar la función desde la configuración
         offset: (validPage - 1) * validLimit,
         limit: validLimit,
         sortBy: sortBy || undefined,
@@ -202,17 +199,17 @@ function PlantillaPageContent() {
     setIsTableConfigModalOpen(false);
   };
 
-  const filterableColumns: { value: keyof UserData; label: string }[] = [
-    { value: "nombreCompleto", label: "Nombre Completo" },
-    { value: "email", label: "Email" },
-    { value: "rol", label: "Rol" },
-    // Considerar añadir más columnas si es necesario, ej:
-    // { value: "ultimoAcceso", label: "Último Acceso" }, // Requeriría manejo de fechas
-  ];
+  // filterableColumns ahora se toma de plantillaConfig
+  const filterableColumns = configFilterableColumns.map((col) => ({
+    ...col,
+    value: col.value as keyof UserData, // Asegurar el tipo correcto
+  }));
 
   return (
     <div className="mx-auto">
       <Header
+        title={plantillaConfig.title} // Usar título desde config
+        description={plantillaConfig.description} // Usar descripción desde config
         searchTerm={searchTerm}
         onSearchTermChange={handleSearchTermChange}
         onAdvancedFilterClick={openAdvanceFilterModal}
@@ -248,14 +245,17 @@ function PlantillaPageContent() {
         initialAppliedFilters={appliedAdvancedFilters}
         onFiltersApplied={handleApplyAdvancedFilters}
         onFiltersCleared={handleClearAdvancedFilters}
-        filterableColumns={filterableColumns}
+        filterableColumns={filterableColumns} // Usar filterableColumns procesadas
       />
       <TableConfigModal
         isOpen={isTableConfigModalOpen}
         onClose={closeTableConfigModal}
         itemsPerPage={itemsPerPage}
         onItemsPerPageChange={handleItemsPerPageChange}
-        availableColumns={allTableColumns}
+        availableColumns={allTableColumns.map((col) => ({
+          ...col,
+          key: col.accessorKey,
+        }))} // Mapear a la estructura esperada por TableConfigModal
         visibleColumns={visibleColumns}
         onVisibleColumnsChange={setVisibleColumns}
         paginationPosition={tablePaginationPosition}
